@@ -1,24 +1,13 @@
-public class CashDispenser {
-    Cash cash;
+public class CashDispenser extends CashDispenserAbstract{
 
-    public void setInitialCash(Cash initialCash) {
-        this.cash = initialCash;
+
+    public CashDispenser(Cash initial) {
+        super(initial);
     }
 
-    public Boolean checkCash(Cash amount) {
-        return this.cash.greaterThan(amount);
+    public CashDispenser() {
+        super();
     }
 
-    public void dispenseCash(Cash amount) {
-        if (this.checkCash(amount)) {
-            this.cash.subtract(amount);
-        }
-        else {
-            System.out.println("Cash not enough. Please call maintenance.");
-        }
-    }
 
-    public void addCash(Cash amount) {
-        this.cash.add(amount);
-    }
 }
