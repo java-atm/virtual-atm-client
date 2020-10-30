@@ -1,4 +1,4 @@
-public class CashDispenserAbstract {
+public class CashDispenserAbstract implements CashDispenserInterface{
 
 
     private Cash cash;
@@ -28,16 +28,19 @@ public class CashDispenserAbstract {
         }
     }
 
-    public Boolean checkCash(Cash amount) {
+    public boolean checkCash(Cash amount) {
         return this.cash.greaterThan(amount);
     }
 
-    public void dispenseCash(Cash amount) {
+    public boolean dispenseCash(Cash amount) {
+        boolean dispenseResult = true;
         if (this.checkCash(amount)) {
             this.cash.subtract(amount);
         } else {
             System.out.println("Cash not enough. Please call maintenance.");
+            dispenseResult = false;
         }
+        return dispenseResult;
     }
 
     public void addCash(Cash amount) {
