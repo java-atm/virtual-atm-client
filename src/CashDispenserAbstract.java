@@ -28,14 +28,14 @@ public class CashDispenserAbstract implements CashDispenserInterface{
         }
     }
 
-    public boolean checkCash(Cash amount) {
-        return cash.greaterThan(amount);
+    public boolean checkCash(Cash cash) {
+        return this.cash.greaterThan(cash);
     }
 
-    public boolean dispenseCash(Cash amount) {
+    public boolean dispenseCash(Cash cash) {
         boolean dispenseResult = true;
-        if (checkCash(amount)) {
-            cash.subtract(amount);
+        if (checkCash(cash)) {
+            this.cash.subtract(cash);
         } else {
             System.out.println("Cash not enough. Please call maintenance.");
             dispenseResult = false;
@@ -43,9 +43,9 @@ public class CashDispenserAbstract implements CashDispenserInterface{
         return dispenseResult;
     }
 
-    public void addCash(Cash amount) {
-        if (cash != null) {
-            cash.add(amount);
+    public void addCash(Cash cash) {
+        if (this.cash != null) {
+            this.cash.add(cash);
         } else {
             System.out.println("Initial cash is not set.");
         }
