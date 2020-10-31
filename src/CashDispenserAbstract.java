@@ -4,12 +4,12 @@ public class CashDispenserAbstract implements CashDispenserInterface{
     private Cash cash;
 
     public CashDispenserAbstract(Cash initial) {
-        this.setInitialCash(initial);
+        setInitialCash(initial);
     }
 
     public CashDispenserAbstract() {
-        Cash initial = new Cash(0);
-        this.setInitialCash(initial);
+        Cash initial = new Cash();
+        setInitialCash(initial);
     }
 
     public Cash getCash() {
@@ -21,21 +21,21 @@ public class CashDispenserAbstract implements CashDispenserInterface{
     }
 
     public void setInitialCash(Cash initialCash) {
-        if (this.cash == null) {
-            this.cash = initialCash;
+        if (cash == null) {
+            cash = initialCash;
         } else {
             System.out.println("Initial cash is already set, call addCash to add cash.");
         }
     }
 
     public boolean checkCash(Cash amount) {
-        return this.cash.greaterThan(amount);
+        return cash.greaterThan(amount);
     }
 
     public boolean dispenseCash(Cash amount) {
         boolean dispenseResult = true;
-        if (this.checkCash(amount)) {
-            this.cash.subtract(amount);
+        if (checkCash(amount)) {
+            cash.subtract(amount);
         } else {
             System.out.println("Cash not enough. Please call maintenance.");
             dispenseResult = false;
@@ -44,8 +44,8 @@ public class CashDispenserAbstract implements CashDispenserInterface{
     }
 
     public void addCash(Cash amount) {
-        if (this.cash != null) {
-            this.cash.add(amount);
+        if (cash != null) {
+            cash.add(amount);
         } else {
             System.out.println("Initial cash is not set.");
         }
