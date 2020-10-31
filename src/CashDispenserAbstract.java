@@ -1,5 +1,4 @@
-public class CashDispenserAbstract implements CashDispenserInterface{
-
+public abstract class CashDispenserAbstract implements CashDispenserInterface{
 
     private Cash cash;
 
@@ -50,6 +49,4 @@ public class CashDispenserAbstract implements CashDispenserInterface{
             System.out.println("Initial cash is not set.");
         }
     }
-
-
 }

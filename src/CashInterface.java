@@ -7,6 +7,4 @@ public interface CashInterface {
     public boolean greaterThan(Cash amount);
 
     public boolean lessThan(Cash amount);
-
-
 }
