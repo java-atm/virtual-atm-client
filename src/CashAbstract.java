@@ -56,8 +56,6 @@ public abstract class CashAbstract implements CashInterface {
 
     @Override
     public String toString() {
-        return "CashAbstract{" +
-                "amount=" + amount +
-                '}';
+        return " " + amount;
     }
 }
