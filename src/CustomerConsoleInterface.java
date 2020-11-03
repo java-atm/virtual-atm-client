@@ -1,7 +1,7 @@
 public interface CustomerConsoleInterface {
 
     Integer readPin();
-    Cash readAmount();
-    void displayAmount(Cash cash);
+    Cash readCash();
+    void displayCash(Cash cash);
     void displayMessage(String message);
 }

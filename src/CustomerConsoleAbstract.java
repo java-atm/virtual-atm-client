@@ -22,7 +22,7 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
     }
 
     @Override
-    public Cash readAmount() {
+    public Cash readCash() {
         System.out.print("Please enter the amount: ");
         double amount;
         try {
@@ -35,7 +35,7 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
     }
 
     @Override
-    public void displayAmount(Cash cash) {
+    public void displayCash(Cash cash) {
         System.out.println("Amount: " + cash.toString());
     }
 
