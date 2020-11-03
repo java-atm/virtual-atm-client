@@ -19,7 +19,26 @@ public abstract class ATMAbstract implements ATMInterface {
 
     @Override
     public void startATM() {
+        boolean atm_is_on = true;
+        System.out.println("ATM's Home Screen");
+            while (atm_is_on) {
 
+                card = readCard();
+                if (card != null) {
+                    if (card.getID().equals("EDUARD_MATVEEV") && card.getPin().equals(1111)) {
+                        atm_is_on = false;
+                        System.out.println("ATM SWITCH OFF");
+                    } else {
+                        System.out.println("Welcome To Main Menu");
+                        System.out.print("Please, select an action number: ");
+                        //displayActions();
+                        System.out.println("There is displayed actions 1, 2, 3, and so on");
+                        //Calling function depends on an action number
+                    }
+
+                }
+                ejectCard();
+            }
     }
 
     protected boolean verifyCard() {
@@ -43,6 +62,7 @@ public abstract class ATMAbstract implements ATMInterface {
             if (card_id != null && pin != null) {
                 return new Card(card_id, pin);
             }
+            System.out.println("Something went wrong, try again");
         }
 
         return null;
@@ -70,7 +90,7 @@ public abstract class ATMAbstract implements ATMInterface {
         try {
             pin = in.nextInt();
         } catch (InputMismatchException ex) {
-            System.out.println(ex.toString());
+            System.out.println(ex.getMessage());
             return null;
         }
 
@@ -86,7 +106,13 @@ public abstract class ATMAbstract implements ATMInterface {
 
 
     protected void ejectCard() {
-        System.out.println("Ejecting your card " + card.getID());
+        try {
+            System.out.println("Ejecting your card " + card.getID());
+        } catch(NullPointerException ex) {
+            System.out.println(ex.getMessage());
+            System.out.println("Ejecting your card. If you forgot your password do something");
+        }
+
         card = null;
         //receiptPrinter();
     }
