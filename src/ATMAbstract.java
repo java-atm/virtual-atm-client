@@ -4,12 +4,16 @@ import java.util.Scanner;
 public abstract class ATMAbstract implements ATMInterface {
 
     private final String ATM_ID;
-    private Card card;
     private CashDispenser cashDispenser;
+    private CustomerConsole customerConsole;
+    private final Scanner scanner;
+    private Card card;
 
     public ATMAbstract(final String ATM_ID) {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser();
+        customerConsole = new CustomerConsole();
+        scanner = new Scanner(System.in);
         card = null;
     }
 
@@ -30,9 +34,10 @@ public abstract class ATMAbstract implements ATMInterface {
                         System.out.println("ATM SWITCH OFF");
                     } else {
                         System.out.println("Welcome To Main Menu");
-                        System.out.print("Please, select an action number: ");
-                        //displayActions();
-                        System.out.println("There is displayed actions 1, 2, 3, and so on");
+                        displayActions();
+                        int selected_action = chooseAction();
+                        System.out.println("Now, we are in startATM");
+                        executeSelectedAction(selected_action);
                         //Calling function depends on an action number
                     }
 
@@ -49,15 +54,14 @@ public abstract class ATMAbstract implements ATMInterface {
 
     protected Card readCard() {
 
-        Scanner in = new Scanner(System.in);
         String card_id;
         Integer pin;
 
-        int attempt_count = 0;
-        final int MAX_ATTEMPT = 3;
-        while (attempt_count < MAX_ATTEMPT) {
-            attempt_count += 1;
-            card_id = readID();
+        int attempts_count = 0;
+        final int MAX_ATTEMPTS = 3;
+        while (attempts_count < MAX_ATTEMPTS) {
+            attempts_count += 1;
+            card_id =  //readID();
             pin = readPIN();
             if (card_id != null && pin != null) {
                 return new Card(card_id, pin);
@@ -69,7 +73,7 @@ public abstract class ATMAbstract implements ATMInterface {
     }
 
     protected String readID() {
-        Scanner in = new Scanner(System.in);
+
         System.out.print("Insert your card ID: ");
         String card_id = in.nextLine();
         if (cardIdIsValid(card_id)) {
@@ -79,21 +83,13 @@ public abstract class ATMAbstract implements ATMInterface {
     }
 
     private boolean cardIdIsValid(String ID) {
-        return ID.length() > Card.ID_MIN_LENGTH &&
-                ID.length() < Card.ID_MAX_LENGTH;
+        return ID.length() >= Card.ID_MIN_LENGTH &&
+                ID.length() <= Card.ID_MAX_LENGTH;
     }
 
     protected Integer readPIN() {
-        Scanner in = new Scanner(System.in);
-        System.out.print("Insert your pin: ");
-        Integer pin;
-        try {
-            pin = in.nextInt();
-        } catch (InputMismatchException ex) {
-            System.out.println(ex.getMessage());
-            return null;
-        }
 
+        Integer pin = customerConsole.askPIN();
         if(pinIsValid(pin)) {
             return pin;
         }
@@ -103,7 +99,6 @@ public abstract class ATMAbstract implements ATMInterface {
     private boolean pinIsValid(Integer pin) {
         return pin.toString().length() == Card.PIN_LENGTH;
     }
-
 
     protected void ejectCard() {
         try {
@@ -136,8 +131,68 @@ public abstract class ATMAbstract implements ATMInterface {
         return false;
     }
 
+    protected void displayActions() {
+        System.out.println("Check Balance - " + Actions.CHECK_BALANCE.getAction());
+        System.out.println("Withdrawal    - " + Actions.WITHDRAWAL.getAction());
+        System.out.println("Deposit       - " + Actions.DEPOSIT.getAction());
+        System.out.println("Change PIN    - " + Actions.PIN_CHANGE.getAction());
+        System.out.println("Exit          - " + Actions.EXIT.getAction());
+    }
+
+    protected int chooseAction() {
+        System.out.print("Please, select an action number: ");
+        int selected_action = in.nextInt();
+        try {
+            return Actions.values()[selected_action].getAction();
+        } catch (IndexOutOfBoundsException ex) {
+            System.out.println("Your input is wrong");
+        }
+        return Actions.WRONG_ACTION.getAction();
+    }
+
+    protected void executeSelectedAction(int action) {
+        switch (Actions.values()[action]) {
+            case CHECK_BALANCE:
+                checkBalance();
+                break;
+            case WITHDRAWAL:
+                withdrawal();
+                break;
+            case DEPOSIT:
+                deposit();
+                break;
+            case PIN_CHANGE:
+                changePIN();
+                break;
+            case EXIT:
+                exit();
+                break;
+            default:
+                System.out.println("Do something");
+        }
+    }
 
     protected void dispenseCash(Cash cash) {
 
+    }
+
+    protected void checkBalance() {
+        System.out.println("checkBalance");
+    }
+
+    protected void withdrawal() {
+        System.out.println("withdrawal");
+    }
+
+    protected void deposit() {
+        System.out.println("deposit");
+    }
+
+    protected void changePIN() {
+        System.out.println("changePIN");
+    }
+
+    protected void exit() {
+        System.out.println("exit");
     }
 }
