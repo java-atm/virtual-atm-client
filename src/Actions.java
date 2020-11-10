@@ -1,11 +1,10 @@
 public enum Actions {
 
-    CHECK_BALANCE(0),
-    WITHDRAWAL(1),
-    DEPOSIT(2),
-    PIN_CHANGE(3),
-    EXIT(4),
-    WRONG_ACTION(5);
+    CHECK_BALANCE(1),
+    WITHDRAWAL(2),
+    DEPOSIT(3),
+    PIN_CHANGE(4),
+    EXIT(5);
 
     private final int action;
 

@@ -1,28 +1,29 @@
+import java.util.LinkedHashMap;
+
 public abstract class CardAbstract implements CardInterface {
 
-    private final String ID;
-    private Integer pin;
+    private final LinkedHashMap<CardInfo, String> IDENTIFICATION_INFO;
 
     public final static int ID_MIN_LENGTH = 13;
     public final static int ID_MAX_LENGTH = 20;
-    public final static int PIN_LENGTH = 4;
 
-
-    public CardAbstract(final String ID, Integer pin) {
-        this.ID = ID;
-        this.pin = pin;
+    public CardAbstract(LinkedHashMap<CardInfo, String> identifyInfo) {
+        IDENTIFICATION_INFO = identifyInfo;
     }
 
-    public String getID() {
-        return ID;
+    public String getCardNumber() {
+        return IDENTIFICATION_INFO.get(CardInfo.CARD_NUMBER);
     }
 
-    public Integer getPin() {
-        return pin;
+    public String getName() {
+        return IDENTIFICATION_INFO.get(CardInfo.NAME);
     }
 
-    public void setPin(Integer pin) {
-        this.pin = pin;
+    public String getSurname() {
+        return IDENTIFICATION_INFO.get(CardInfo.SURNAME);
     }
 
+    public LinkedHashMap<CardInfo, String> getIDENTIFICATION_INFO() {
+        return IDENTIFICATION_INFO;
+    }
 }

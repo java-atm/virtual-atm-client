@@ -1,19 +1,24 @@
 import java.util.InputMismatchException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public abstract class ATMAbstract implements ATMInterface {
 
     private final String ATM_ID;
-    private CashDispenser cashDispenser;
-    private CustomerConsole customerConsole;
+    private final CashDispenser cashDispenser;
     private final Scanner scanner;
+    private final CardReader cardReader;
+    //private final ReceiptPrinter;
+    //private final Customer currentCustomer;
+    //private final Transaction currentTransaction;
     private Card card;
 
     public ATMAbstract(final String ATM_ID) {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser();
-        customerConsole = new CustomerConsole();
         scanner = new Scanner(System.in);
+        cardReader = new CardReader();
         card = null;
     }
 
@@ -24,94 +29,42 @@ public abstract class ATMAbstract implements ATMInterface {
     @Override
     public void startATM() {
         boolean atm_is_on = true;
-        System.out.println("ATM's Home Screen");
-            while (atm_is_on) {
-
-                card = readCard();
-                if (card != null) {
-                    if (card.getID().equals("EDUARD_MATVEEV") && card.getPin().equals(1111)) {
+        while (atm_is_on) {
+            CustomerConsole.displayMessage(ATM_ID + " Home Screen");
+            Integer pin;
+            card = readCard();
+            if (card != null) {
+                pin = CustomerConsole.askPIN();
+                if (pin != null) {
+                    if (card.getName().equals("Eduard") && pin == 1111) {
                         atm_is_on = false;
-                        System.out.println("ATM SWITCH OFF");
+                        CustomerConsole.displayMessage("ATM SWITCH OFF");
                     } else {
-                        System.out.println("Welcome To Main Menu");
-                        displayActions();
-                        int selected_action = chooseAction();
-                        System.out.println("Now, we are in startATM");
-                        executeSelectedAction(selected_action);
-                        //Calling function depends on an action number
+                        CustomerConsole.displayMessage("Welcome To Main Menu " + card.getName());
+                        Actions selectedAction = CustomerConsole.chooseAction();
+                        performSelectedAction(selectedAction);
                     }
-
                 }
-                ejectCard();
             }
+            cardReader.ejectCard();
+            CustomerConsole.displayMessage("Card is ejecting");
+            CustomerConsole.displayMessage("Please take your card");
+        }
     }
-
-    protected boolean verifyCard() {
-        //send card.getID and card.getPIN to Bank (that is DB) to verify
-        return false;
-    }
-
 
     protected Card readCard() {
 
-        String card_id;
-        Integer pin;
+        LinkedHashMap<CardInfo, String> card_identification;
 
-        int attempts_count = 0;
-        final int MAX_ATTEMPTS = 3;
-        while (attempts_count < MAX_ATTEMPTS) {
-            attempts_count += 1;
-            card_id =  //readID();
-            pin = readPIN();
-            if (card_id != null && pin != null) {
-                return new Card(card_id, pin);
-            }
-            System.out.println("Something went wrong, try again");
+        CustomerConsole.displayMessage("Please insert your card info");
+        card_identification = cardReader.readCard();
+        if (cardReader.cardIsValid()) {
+            return new Card(card_identification);
         }
+        CustomerConsole.displayMessage("Something went wrong, try again");
 
         return null;
     }
-
-    protected String readID() {
-
-        System.out.print("Insert your card ID: ");
-        String card_id = in.nextLine();
-        if (cardIdIsValid(card_id)) {
-            return card_id;
-        }
-        return null;
-    }
-
-    private boolean cardIdIsValid(String ID) {
-        return ID.length() >= Card.ID_MIN_LENGTH &&
-                ID.length() <= Card.ID_MAX_LENGTH;
-    }
-
-    protected Integer readPIN() {
-
-        Integer pin = customerConsole.askPIN();
-        if(pinIsValid(pin)) {
-            return pin;
-        }
-        return null;
-    }
-
-    private boolean pinIsValid(Integer pin) {
-        return pin.toString().length() == Card.PIN_LENGTH;
-    }
-
-    protected void ejectCard() {
-        try {
-            System.out.println("Ejecting your card " + card.getID());
-        } catch(NullPointerException ex) {
-            System.out.println(ex.getMessage());
-            System.out.println("Ejecting your card. If you forgot your password do something");
-        }
-
-        card = null;
-        //receiptPrinter();
-    }
-
 
     protected Cash getAccountEntry() {
         return null;
@@ -131,27 +84,8 @@ public abstract class ATMAbstract implements ATMInterface {
         return false;
     }
 
-    protected void displayActions() {
-        System.out.println("Check Balance - " + Actions.CHECK_BALANCE.getAction());
-        System.out.println("Withdrawal    - " + Actions.WITHDRAWAL.getAction());
-        System.out.println("Deposit       - " + Actions.DEPOSIT.getAction());
-        System.out.println("Change PIN    - " + Actions.PIN_CHANGE.getAction());
-        System.out.println("Exit          - " + Actions.EXIT.getAction());
-    }
-
-    protected int chooseAction() {
-        System.out.print("Please, select an action number: ");
-        int selected_action = in.nextInt();
-        try {
-            return Actions.values()[selected_action].getAction();
-        } catch (IndexOutOfBoundsException ex) {
-            System.out.println("Your input is wrong");
-        }
-        return Actions.WRONG_ACTION.getAction();
-    }
-
-    protected void executeSelectedAction(int action) {
-        switch (Actions.values()[action]) {
+    protected void performSelectedAction(Actions action) {
+        switch (action) {
             case CHECK_BALANCE:
                 checkBalance();
                 break;
@@ -196,3 +130,4 @@ public abstract class ATMAbstract implements ATMInterface {
         System.out.println("exit");
     }
 }
+
