@@ -22,8 +22,10 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
             attempts_count++;
             try {
                 pin = console.nextInt();
-                if (checkPinIsValid(pin)) break;
+                if (!checkPinIsValid(pin)) throw new InputMismatchException(null);
+                break;
             } catch (InputMismatchException exception) {
+                pin = null;
                 console = new Scanner(System.in);
                 displayMessage("Failed to read the pin.");
             }

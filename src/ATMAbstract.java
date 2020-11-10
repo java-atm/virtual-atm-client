@@ -1,6 +1,4 @@
-import java.util.InputMismatchException;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public abstract class ATMAbstract implements ATMInterface {
@@ -12,14 +10,12 @@ public abstract class ATMAbstract implements ATMInterface {
     //private final ReceiptPrinter;
     //private final Customer currentCustomer;
     //private final Transaction currentTransaction;
-    private Card card;
 
     public ATMAbstract(final String ATM_ID) {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser();
         scanner = new Scanner(System.in);
         cardReader = new CardReader();
-        card = null;
     }
 
     public String getATM_ID() {
@@ -32,38 +28,34 @@ public abstract class ATMAbstract implements ATMInterface {
         while (atm_is_on) {
             CustomerConsole.displayMessage(ATM_ID + " Home Screen");
             Integer pin;
-            card = readCard();
-            if (card != null) {
+            readCard();
+            if (cardReader.getCard() != null) {
                 pin = CustomerConsole.askPIN();
                 if (pin != null) {
-                    if (card.getName().equals("Eduard") && pin == 1111) {
+                    if (cardReader.getCard().getName().equals("Eduard") && pin == 1111) {
                         atm_is_on = false;
                         CustomerConsole.displayMessage("ATM SWITCH OFF");
                     } else {
-                        CustomerConsole.displayMessage("Welcome To Main Menu " + card.getName());
+                        CustomerConsole.displayMessage("Welcome To Main Menu " + cardReader.getCard().getName());
                         Actions selectedAction = CustomerConsole.chooseAction();
                         performSelectedAction(selectedAction);
                     }
                 }
             }
-            cardReader.ejectCard();
+            ejectCard();
             CustomerConsole.displayMessage("Card is ejecting");
             CustomerConsole.displayMessage("Please take your card");
         }
     }
 
-    protected Card readCard() {
-
-        LinkedHashMap<CardInfo, String> card_identification;
+    protected void readCard() {
 
         CustomerConsole.displayMessage("Please insert your card info");
-        card_identification = cardReader.readCard();
-        if (cardReader.cardIsValid()) {
-            return new Card(card_identification);
+        cardReader.readCard();
+        if (!cardReader.cardIsValid()) {
+            cardReader.ejectCard();
+            CustomerConsole.displayMessage("Something went wrong, try again");
         }
-        CustomerConsole.displayMessage("Something went wrong, try again");
-
-        return null;
     }
 
     protected Cash getAccountEntry() {
@@ -127,7 +119,12 @@ public abstract class ATMAbstract implements ATMInterface {
     }
 
     protected void exit() {
+        ejectCard();
         System.out.println("exit");
+    }
+
+    public void ejectCard() {
+        cardReader.ejectCard();
     }
 }
 

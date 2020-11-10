@@ -3,6 +3,7 @@ import java.util.Scanner;
 
 public abstract class CardReaderAbstract {
     private Card card;
+
     private final Scanner scanner;
 
     CardReaderAbstract() {
@@ -10,7 +11,10 @@ public abstract class CardReaderAbstract {
         card = null;
     }
 
-    public LinkedHashMap<CardInfo, String> readCard() {
+    public Card getCard() {
+        return card;
+    }
+    public void readCard() {
         LinkedHashMap<CardInfo,String> cardIdentifyInfo = new LinkedHashMap<>();
         String info;
         for (CardInfo cardInfo : CardInfo.values()) {
@@ -19,7 +23,6 @@ public abstract class CardReaderAbstract {
             cardIdentifyInfo.put(cardInfo, info);
         }
         card = new Card(cardIdentifyInfo);
-        return cardIdentifyInfo;
     }
 
     public boolean cardIsValid() {
