@@ -1,23 +1,23 @@
 public abstract class AccountAbstract implements AccountInterface{
-    private final String accountNumber;
-    private final AccountType accountType;
-    private final AccountCurrency accountCurrency;
+    private final String ACCOUNT_NUMBER;
+    private final AccountType ACCOUNT_TYPE;
+    private final AccountCurrency ACCOUNT_CURRENCY;
 
     public AccountAbstract(String accountNumber, AccountType accountType, AccountCurrency accountCurrency) {
-        this.accountNumber = accountNumber;
-        this.accountType = accountType;
-        this.accountCurrency = accountCurrency;
+        this.ACCOUNT_NUMBER = accountNumber;
+        this.ACCOUNT_TYPE = accountType;
+        this.ACCOUNT_CURRENCY = accountCurrency;
     }
 
     public String getAccountNumber() {
-        return accountNumber;
+        return ACCOUNT_NUMBER;
     }
 
-    public Enum<AccountType> getAccountType() {
-        return accountType;
+    public AccountType getAccountType() {
+        return ACCOUNT_TYPE;
     }
 
-    public Enum<AccountCurrency> getAccountCurrency() {
-        return accountCurrency;
+    public AccountCurrency getAccountCurrency() {
+        return ACCOUNT_CURRENCY;
     }
 }

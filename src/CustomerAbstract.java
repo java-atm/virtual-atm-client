@@ -1,16 +1,16 @@
 import java.util.ArrayList;
 
 public abstract class CustomerAbstract implements CustomerInterface{
-    private final String customerID;
+    private final String CUSTOMER_ID;
     private final ArrayList<Account> accounts;
     private String phoneNumber;
     private String email;
     private String name;
     private String surname;
-    private final int INITIAL_ACCOUNT_COUNT = 9;
+    private static final int INITIAL_ACCOUNT_COUNT = 9;
 
     public CustomerAbstract(String customerID, String phoneNumber, String email, String name, String surname) {
-        this.customerID = customerID;
+        this.CUSTOMER_ID = customerID;
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.name = name;
@@ -19,7 +19,7 @@ public abstract class CustomerAbstract implements CustomerInterface{
     }
 
     public String getCustomerID() {
-        return customerID;
+        return CUSTOMER_ID;
     }
 
     public ArrayList<Account> getAccounts() {
@@ -68,24 +68,9 @@ public abstract class CustomerAbstract implements CustomerInterface{
 
     @Override
     public Account getAccountByAccountNumber(String accountNumber) {
-        for (Account account:accounts) {
+        for (Account account : accounts) {
             if (account.getAccountNumber().equals(accountNumber)) {
                 return account;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Card getCardByCardNumber(String cardNumber) {
-        for (Account account:accounts) {
-            if (!(account instanceof CardAccount)) {
-                continue;
-            }
-            CardAccount cardAccount = (CardAccount) account;
-            Card currentCard = cardAccount.getCardByCardNumber(cardNumber);
-            if (currentCard != null) {
-                return currentCard;
             }
         }
         return null;
