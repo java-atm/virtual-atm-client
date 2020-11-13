@@ -69,7 +69,7 @@ public abstract class ATMAbstract implements ATMInterface {
         return null;
     }
 
-    protected void addCash(Cash cash) {
+    public void addCash(Cash cash) {
         System.out.println("Adding cash" + cash.toString());
         cashDispenser.addCash(cash);
     }
