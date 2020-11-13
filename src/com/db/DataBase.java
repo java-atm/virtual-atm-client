@@ -88,10 +88,14 @@ public class DataBase extends DataBaseAbstract{
         account_balances.put(acc9.getAccountNumber(), new Cash(745));
     }
 
-    public Customer getCustomer(Card card, String pin) throws IncorrectPinException{
+    public Customer getCustomer(Card card, String pin) throws IncorrectPinException, CustomerNotFoundException {
         String true_pin = card_pins.get(card.getIDENTIFICATION_INFO());
         if (pin.equals(true_pin)) {
-            return customer_cards.get(card.getIDENTIFICATION_INFO());
+            Customer customer = customer_cards.get(card.getIDENTIFICATION_INFO());
+            if (customer == null) {
+                throw new CustomerNotFoundException("Customer not found");
+            }
+            return customer;
         } else {
             throw new IncorrectPinException("Pins didn't match");
         }
