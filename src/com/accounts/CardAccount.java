@@ -16,4 +16,8 @@ public class CardAccount extends Account{
     public Card getCard() {
         return card;
     }
+
+    public String toString() {
+        return getAccountCurrency().getCurrency() + " " + getAccountType().getType() + " " + card.getCardNumber() + "(" + getAccountNumber() + ")";
+    }
 }
