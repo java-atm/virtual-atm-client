@@ -3,13 +3,13 @@ public enum AccountType {
     SAVINGS("SAVINGS"),
     CARD("CARD");
 
-    private final String info;
+    private final String type;
 
-    AccountType(String info) {
-        this.info = info;
+    AccountType(String type) {
+        this.type = type;
     }
 
-    public String getInfo() {
-        return info;
+    public String getType() {
+        return type;
     }
 }

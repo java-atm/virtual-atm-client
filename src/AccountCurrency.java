@@ -4,14 +4,14 @@ public enum AccountCurrency {
     USD("USD"),
     EUR("EUR");
 
-    private final String info;
+    private final String currency;
 
-    AccountCurrency(String info) {
-        this.info = info;
+    AccountCurrency(String currency) {
+        this.currency = currency;
     }
 
-    public String getInfo() {
-        return info;
+    public String getCurrency() {
+        return currency;
     }
 }
 
