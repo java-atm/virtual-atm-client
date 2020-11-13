@@ -2,13 +2,13 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public abstract class CustomerConsoleAbstract implements CustomerConsoleInterface {
-    private static Scanner console = intiConsole();
+    private static Scanner console = initConsole();
 
     public CustomerConsoleAbstract() {
 
     }
 
-    private static Scanner intiConsole() {
+    private static Scanner initConsole() {
         return new Scanner(System.in);
     }
 
@@ -37,13 +37,32 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
 
     }
 
-    public static boolean checkPinIsValid(Integer pin) {
+    private static boolean checkPinIsValid(Integer pin) {
         return pin.toString().length() == 4;
     }
 
 
     public static String askAccountNumber() {
+        displayMessage("Please, insert your account number: ");
+        String accountNumber;
+        int attempts_count = 0;
+        final int MAX_ATTEMPTS = 3;
+
+        while (attempts_count < MAX_ATTEMPTS){
+            attempts_count++;
+            displayMessage("Inserted account number is not valid");
+            displayMessage("Try again");
+            displayMessage("Please, insert your account number: ");
+            accountNumber = console.nextLine();
+            if(checkAccountNumberIsValid(accountNumber)) {
+                return accountNumber;
+            }
+        }
         return null;
+    }
+
+    private static boolean checkAccountNumberIsValid(String accountNumber) {
+        return accountNumber.length() == 16;
     }
 
     public static Cash askAmount() {
@@ -61,9 +80,9 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
+                console.nextLine();
                 displayMessage("Please choose an action from the list");
                 System.out.println(exception.getMessage());
-                console = new Scanner(System.in);
             }
         }
         return Actions.values()[action];
