@@ -19,6 +19,7 @@ public abstract class CardReaderAbstract {
     public Card getCard() {
         return card;
     }
+
     public void readCard() {
         LinkedHashMap<CardInfo,String> cardIdentifyInfo = new LinkedHashMap<>();
         String info;
