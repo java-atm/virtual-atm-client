@@ -16,7 +16,8 @@ public abstract class CardReaderAbstract {
         card = null;
     }
 
-    public Card getCard() {
+    public Card getCard() throws NullPointerException {
+        if (card == null) throw new NullPointerException("Invalid Card");
         return card;
     }
 

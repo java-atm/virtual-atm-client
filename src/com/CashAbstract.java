@@ -13,6 +13,10 @@ public abstract class CashAbstract {
         this.amount = amount;
     }
 
+    public abstract void addAmount(double amount);
+
+    public abstract void subtractAmount(double amount);
+
     public double getAmount() {
         return amount;
     }

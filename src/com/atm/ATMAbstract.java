@@ -27,6 +27,7 @@ public abstract class ATMAbstract implements ATMInterface {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser(initialCash);
         cardReader = new CardReader();
+        currentCustomer = null;
     }
 
     public String getATM_ID() {
@@ -43,13 +44,13 @@ public abstract class ATMAbstract implements ATMInterface {
                 readCard();
                 pin = CustomerConsole.askPIN();
             } catch (NullPointerException | InputMismatchException exception) {
-                //System.out.println("Analyze "+ exception.getMessage());
-                pin = 1111;
+                pin = 0;
+                CustomerConsole.displayMessage(exception.getLocalizedMessage());
             }
-            while(true) {
+            while(atm_is_on) {
                 try {
                     currentCustomer = new DataBase().getCustomer(cardReader.getCard(), pin.toString());
-                    if (cardReader.getCard().getName().equals("Eduard") && pin == 1111) {
+                    if (currentCustomer.getName().equals("Admin")) {
                         atm_is_on = false;
                         CustomerConsole.displayMessage("ATM SWITCH OFF");
                     } else {
@@ -60,8 +61,8 @@ public abstract class ATMAbstract implements ATMInterface {
                     }
                 } catch (NullPointerException |
                         CustomerNotFoundException |
-                        IncorrectPinException nullPointerException) {
-                    //System.out.println("Analyze " + nullPointerException.getLocalizedMessage());
+                        IncorrectPinException exception) {
+                    CustomerConsole.displayMessage(exception.getMessage());
                     break;
                 }
             }
@@ -71,14 +72,12 @@ public abstract class ATMAbstract implements ATMInterface {
         }
     }
 
-    protected void readCard() {
-
+    protected void readCard() throws NullPointerException {
         CustomerConsole.displayMessage("Please insert your card info");
         cardReader.readCard();
         if (!cardReader.cardIsValid()) {
             cardReader.ejectCard();
-            CustomerConsole.displayMessage("Something went wrong, try again");
-            throw new NullPointerException();
+            throw new NullPointerException("Something went wrong, try again");
         }
     }
 
@@ -86,8 +85,7 @@ public abstract class ATMAbstract implements ATMInterface {
         return null;
     }
 
-    public void addCash(Integer cash) {
-        //System.out.println("Adding cash" + cash.toString());
+    public void addCash(Double cash) {
         cashDispenser.addCash(cash);
     }
 
@@ -128,7 +126,7 @@ public abstract class ATMAbstract implements ATMInterface {
 
     protected void withdrawal() {
         CustomerConsole.displayMessage("Start withdraw transaction");
-        int amount = CustomerConsole.withdrawProcess();
+        double amount = CustomerConsole.withdrawProcess();
         try {
             cashDispenser.dispenseCash(amount);
             CustomerConsole.displayMessage("Take your cash: " + amount);
@@ -140,12 +138,18 @@ public abstract class ATMAbstract implements ATMInterface {
 
     protected void deposit() {
         CustomerConsole.displayMessage("Start deposit transaction");
-        int banknote;
+        double banknote;
+        double wholeDeposit = 0.0;
         do {
-            banknote = CustomerConsole.acceptCash();
-            if (banknote != 0) cashDispenser.addCash(banknote);
-            CustomerConsole.displayMessage("Continue operation? Yes(any), No(0)");
+            try {
+                banknote = CustomerConsole.acceptCash();
+                cashDispenser.addCash(banknote);
+                wholeDeposit += banknote;
+            } catch (InputMismatchException exception) {
+                CustomerConsole.displayMessage(exception.getMessage());
+            }
         } while (CustomerConsole.continueOperation());
+        CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
         CustomerConsole.displayMessage("Finish deposit transaction");
     }
 

@@ -2,26 +2,26 @@ package com.utils.enums;
 
 public enum Banknote {
 
-    BANKNOTE_100K(100000),
-    BANKNOTE_50K(50000),
-    BANKNOTE_20K(20000),
-    BANKNOTE_10K(10000),
-    BANKNOTE_5K(5000),
-    BANKNOTE_1K(1000),
-    BANKNOTE_500(500),
-    BANKNOTE_200(200),
-    BANKNOTE_100(100),
-    BANKNOTE_50(50),
-    BANKNOTE_20(20),
-    BANKNOTE_10(10);
+    BANKNOTE_100K(100000.00),
+    BANKNOTE_50K(50000.00),
+    BANKNOTE_20K(20000.00),
+    BANKNOTE_10K(10000.00),
+    BANKNOTE_5K(5000.00),
+    BANKNOTE_1K(1000.00),
+    BANKNOTE_500(500.00),
+    BANKNOTE_200(200.00),
+    BANKNOTE_100(100.00),
+    BANKNOTE_50(50.00),
+    BANKNOTE_20(20.00),
+    BANKNOTE_10(10.00);
 
-    private final int banknote;
+    private final double banknote;
 
-    Banknote(int banknote) {
+    Banknote(double banknote) {
         this.banknote = banknote;
     }
 
-    public int getBanknote() {
+    public double getBanknote() {
         return banknote;
     }
 }

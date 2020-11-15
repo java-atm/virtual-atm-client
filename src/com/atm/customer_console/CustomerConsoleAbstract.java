@@ -28,14 +28,14 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
             attempts_count++;
             try {
                 pin = console.nextInt();
-                if (!checkPinIsValid(pin)) throw new InputMismatchException("PIN invalid");
-                console.nextLine();
+                if (!checkPinIsValid(pin)) throw new InputMismatchException("Something went wrong");
                 break;
             } catch (InputMismatchException exception) {
                 pin = null;
-                console.nextLine();
                 displayMessage("Failed to read the pin.");
                 if (attempts_count == MAX_ATTEMPTS) throw exception;
+            } finally {
+                console.nextLine();
             }
         }
         return pin;
@@ -54,14 +54,15 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
     }
 
     public static boolean continueOperation() {
+        displayMessage("Continue operation? Yes(any), No(0)");
         int accept;
         try {
             accept = console.nextInt();
-            console.nextLine();
             return accept != 0;
         } catch (InputMismatchException exception) {
-            console.nextLine();
             return true;
+        } finally {
+            console.nextLine();
         }
     }
 
@@ -69,43 +70,40 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
         return pin.toString().length() == 4;
     }
 
-    public static int acceptCash() {
+    public static double acceptCash() throws InputMismatchException{
         displayMessage("Please, put in your banknotes");
-        int banknote;
+        double banknote;
         try {
-            banknote = console.nextInt();
-            if(invalidBanknote(banknote)) throw new InputMismatchException("");
+            banknote = console.nextDouble();
+            invalidBanknote(banknote);
             displayMessage("You put in: " + banknote);
-            console.nextLine();
-        } catch (InputMismatchException exception) {
-            banknote = 0;
+        } finally {
             console.nextLine();
         }
         return banknote;
     }
 
-    private static boolean invalidBanknote(int banknote) {
+    private static void invalidBanknote(double banknote) throws InputMismatchException{
         Banknote[] banknotes = Banknote.values();
         for(Banknote one_banknote : banknotes) {
             if(one_banknote.getBanknote() == banknote) {
-                return false;
+                return;
             }
         }
-        displayMessage("Something went wrong, take your banknote");
-        return true;
+        throw new InputMismatchException("Something went wrong, take your banknote");
     }
 
-    public static int withdrawProcess() {
-        int amount;
+    public static double withdrawProcess() {
+        double amount;
         displayMessage("Please, enter amount");
         while(true) {
             try {
-                amount = console.nextInt();
+                amount = console.nextDouble();
                 if (amount % Banknote.BANKNOTE_10.getBanknote() != 0) throw new InputMismatchException("");
-                console.nextLine();
                 break;
             } catch (InputMismatchException exception) {
                 CustomerConsole.displayMessage("Please, enter right amount");
+            } finally {
                 console.nextLine();
             }
         }
@@ -150,9 +148,10 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
-                console.nextLine();
                 displayMessage("Please choose an action from the list");
                 System.out.println(exception.getMessage());
+            } finally {
+                console.nextLine();
             }
         }
         return Action.values()[action];
@@ -175,22 +174,4 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
     public static void displayMessage(String screenMsg) {
         System.out.println(screenMsg);
     }
-
-//    @Override
-//    public atm.Cash readCash() {
-//        System.out.print("Please enter the amount: ");
-//        double amount;
-//        try {
-//            amount = scanner.nextDouble();
-//        } catch (InputMismatchException exception) {
-//            System.out.println("Failed to read the amount.");
-//            return null;
-//        }
-//        return new atm.Cash(amount);
-//    }
-//
-//    @Override
-//    public void displayCash(atm.Cash cash) {
-//        System.out.println("Amount: " + cash.toString());
-//    }
 }

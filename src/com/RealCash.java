@@ -1,41 +1,50 @@
 package com;
 
+import com.utils.enums.Banknote;
 import java.util.LinkedHashMap;
-import java.util.Objects;
 
 public class RealCash extends CashAbstract {
 
-    private LinkedHashMap<Integer, Integer> banknotes = new LinkedHashMap<>();
+    private LinkedHashMap<Double, Integer> banknotes;
 
     public RealCash() {
         super();
+        banknotes = new LinkedHashMap<>();
+        initBanknotes();
     }
 
     public RealCash(double amount) {
         super(amount);
+        banknotes = new LinkedHashMap<>();
+        initBanknotes();
     }
 
-    public LinkedHashMap<Integer, Integer> getBanknotes() {
-        return banknotes;
+    private void initBanknotes() {
+        Banknote[] banknotes = Banknote.values();
+        for(Banknote banknote : banknotes) {
+            this.banknotes.put(banknote.getBanknote(), 0);
+        }
     }
 
-    public LinkedHashMap<Integer, Integer> getCloneBanknotes() {
-        return new LinkedHashMap<>(banknotes);
+    public int getBanknoteNumberByKey(Double banknoteKey) {
+        return banknotes.get(banknoteKey);
     }
 
     public RealCash getClone() {
         RealCash newRealCash = new RealCash(this.getAmount());
-        newRealCash.setBanknotes(this.getCloneBanknotes());
+        newRealCash.banknotes = new LinkedHashMap<>(banknotes);
         return newRealCash;
     }
 
-    public void setBanknotes(LinkedHashMap<Integer, Integer> banknotes) {
-        this.banknotes = banknotes;
+    @Override
+    public void addAmount(double amount) {
+        setAmount(getAmount() + amount);
+        banknotes.put(amount, banknotes.get(amount) + 1);
     }
 
-    public void setAmount(int amount) {
-        super.setAmount(amount);
-        banknotes.put(amount, banknotes.get(amount) + 1);
-
+    @Override
+    public void subtractAmount(double amount) {
+        setAmount(getAmount() - amount);
+        banknotes.put(amount, banknotes.get(amount) - 1);
     }
 }

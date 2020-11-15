@@ -5,11 +5,11 @@ import com.RealCash;
 
 public interface CashDispenserInterface {
 
-    public void setInitialCash(RealCash initialCash);
+    void setInitialCash(RealCash initialCash);
 
-    public boolean isCashEnough(Integer cash);
+    boolean isCashEnough(Double cash);
 
-    public void dispenseCash(Integer cash) throws Exception;
+    void dispenseCash(Double cash) throws Exception;
 
-    public void addCash(Integer cash);
+    void addCash(Double cash);
 }
