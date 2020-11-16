@@ -15,24 +15,9 @@ public abstract class CashDispenserAbstract implements CashDispenserInterface{
     @Override
     public void setInitialCash(RealCash initialCash) {
         if (cash == null) {
-            setCash(new RealCash());
-            separateByBanknotes(initialCash);
+            setCash(new RealCash(initialCash.getAmount()));
         } else {
             System.out.println("Initial cash is already set, call addCash to add cash.");
-        }
-    }
-
-    private void separateByBanknotes(RealCash initialCash) {
-        Banknote[] banknotes = Banknote.values();
-        RealCash separatedCashSum = new RealCash(initialCash.getAmount());
-        while(separatedCashSum.getAmount() != 0) {
-            for (Banknote banknote : banknotes){
-                double key = banknote.getBanknote();
-                if (separatedCashSum.getAmount() >= key) {
-                    cash.addAmount(key);
-                    separatedCashSum.subtractAmount(key);
-                }
-            }
         }
     }
 

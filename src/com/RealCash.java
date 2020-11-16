@@ -10,19 +10,34 @@ public class RealCash extends CashAbstract {
     public RealCash() {
         super();
         banknotes = new LinkedHashMap<>();
-        initBanknotes();
+        initBanknotes(0);
     }
 
-    public RealCash(double amount) {
-        super(amount);
+    public RealCash(double initialAmount) throws InvalidBanknoteException {
+        if (initialAmount % Banknote.BANKNOTE_10.getBanknote() != 0)
+            throw new InvalidBanknoteException("Invalid Banknote");
         banknotes = new LinkedHashMap<>();
-        initBanknotes();
+        initBanknotes(initialAmount);
     }
 
-    private void initBanknotes() {
+    private void initBanknotes(double initialAmount) {
         Banknote[] banknotes = Banknote.values();
         for(Banknote banknote : banknotes) {
             this.banknotes.put(banknote.getBanknote(), 0);
+        }
+        separateByBanknotes(initialAmount);
+    }
+
+    private void separateByBanknotes(Double initialAmount) {
+        Banknote[] banknotes = Banknote.values();
+        while(initialAmount != 0) {
+            for (Banknote banknote : banknotes){
+                double key = banknote.getBanknote();
+                if (initialAmount >= key) {
+                    addAmount(key);
+                    initialAmount -= key;
+                }
+            }
         }
     }
 
