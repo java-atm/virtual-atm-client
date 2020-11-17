@@ -1,14 +1,15 @@
 package com.atm.cash_dispenser;
 
 import com.Cash;
+import com.RealCash;
 
 public interface CashDispenserInterface {
 
-    public void setInitialCash(Cash initialCash);
+    void setInitialCash(RealCash initialCash);
 
-    public boolean checkCash(Cash cash);
+    boolean isCashEnough(Double cash);
 
-    public boolean dispenseCash(Cash cash);
+    void dispenseCash(Double cash) throws Exception;
 
-    public void addCash(Cash cash);
+    void addCash(Double cash);
 }

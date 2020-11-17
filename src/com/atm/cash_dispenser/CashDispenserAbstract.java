@@ -1,56 +1,65 @@
 package com.atm.cash_dispenser;
 
-import com.Cash;
+import com.RealCash;
+import com.atm.CashNotEnoughException;
+import com.utils.enums.Banknote;
 
 public abstract class CashDispenserAbstract implements CashDispenserInterface{
 
-    private Cash cash;
+    private RealCash cash;
 
-    public CashDispenserAbstract(Cash initial) {
-        setInitialCash(initial);
+    public CashDispenserAbstract(RealCash initialCash) {
+        setInitialCash(initialCash);
     }
 
-    public CashDispenserAbstract() {
-        Cash initial = new Cash();
-        setInitialCash(initial);
-    }
-
-    public Cash getCash() {
-        return cash;
-    }
-
-    public void setCash(Cash cash) {
-        this.cash = cash;
-    }
-
-    public void setInitialCash(Cash initialCash) {
+    @Override
+    public void setInitialCash(RealCash initialCash) {
         if (cash == null) {
-            cash = initialCash;
+            setCash(new RealCash(initialCash.getAmount()));
         } else {
             System.out.println("Initial cash is already set, call addCash to add cash.");
         }
     }
 
-    public boolean checkCash(Cash cash) {
-        return this.cash.greaterThan(cash);
+    public RealCash getCash() {
+        return cash;
     }
 
-    public boolean dispenseCash(Cash cash) {
-        boolean dispenseResult = true;
-        if (checkCash(cash)) {
-            this.cash.subtract(cash);
-        } else {
-            System.out.println("atm.Cash not enough. Please call maintenance.");
-            dispenseResult = false;
-        }
-        return dispenseResult;
+    public void setCash(RealCash cash) {
+        this.cash = cash;
     }
 
-    public void addCash(Cash cash) {
-        if (this.cash != null) {
-            this.cash.add(cash);
-        } else {
-            System.out.println("Initial cash is not set.");
+    @Override
+    public void dispenseCash(Double amount) throws CashNotEnoughException {
+        RealCash tempCash = cash.getClone();
+        Banknote[] banknotes = Banknote.values();
+        for (Banknote banknote : banknotes){
+            double banknoteKey = banknote.getBanknote();
+            while(amount >= banknoteKey) {
+                int value = tempCash.getBanknoteNumberByKey(banknoteKey);
+                if (value > 0) {
+                    tempCash.subtractAmount(banknoteKey);
+                    amount -= banknoteKey;
+                } else {
+                    break;
+                }
+            }
+
         }
+        if (amount != 0) {
+            System.out.println("Cash not enough. Please call maintenance.");
+            throw new CashNotEnoughException("ATM doesn't have enough money");
+        }
+        this.cash = tempCash;
+    }
+
+    @Override
+    public boolean isCashEnough(Double amount) {
+        return cash.getAmount() > amount;
+    }
+
+    @Override
+    public void addCash(Double banknote) {
+        cash.addAmount(banknote);
     }
 }

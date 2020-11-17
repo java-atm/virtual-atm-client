@@ -1,28 +1,35 @@
 package com.atm;
 
+import com.Customer;
+import com.RealCash;
 import com.atm.card_reader.CardReader;
 import com.Cash;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
-import com.utils.enums.Actions;
+import com.db.CustomerNotFoundException;
+import com.db.DataBase;
+import com.db.IncorrectPinException;
+import com.utils.enums.Action;
 
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.InputMismatchException;
 
 public abstract class ATMAbstract implements ATMInterface {
 
     private final String ATM_ID;
     private final CashDispenser cashDispenser;
-    private final Scanner scanner;
     private final CardReader cardReader;
     //private final ReceiptPrinter;
-    //private final atm.Customer currentCustomer;
+    private Customer currentCustomer;
+    private DataBase dataBase;
     //private final Transaction currentTransaction;
 
-    public ATMAbstract(final String ATM_ID) {
+    public ATMAbstract(final String ATM_ID, RealCash initialCash) {
         this.ATM_ID = ATM_ID;
-        cashDispenser = new CashDispenser();
-        scanner = new Scanner(System.in);
+        cashDispenser = new CashDispenser(initialCash);
         cardReader = new CardReader();
+        currentCustomer = null;
+        dataBase = new DataBase();
     }
 
     public String getATM_ID() {
@@ -35,33 +42,44 @@ public abstract class ATMAbstract implements ATMInterface {
         while (atm_is_on) {
             CustomerConsole.displayMessage(ATM_ID + " Home Screen");
             Integer pin;
-            readCard();
-            if (cardReader.getCard() != null) {
+            try {
+                readCard();
                 pin = CustomerConsole.askPIN();
-                if (pin != null) {
-                    if (cardReader.getCard().getName().equals("Eduard") && pin == 1111) {
+            } catch (NullPointerException | InputMismatchException exception) {
+                pin = 0;
+                CustomerConsole.displayMessage(exception.getLocalizedMessage());
+            }
+            while(atm_is_on) {
+                try {
+                    currentCustomer = dataBase.getCustomer(cardReader.getCard(), pin.toString());
+                    if (currentCustomer.getName().equals("Admin")) {
                         atm_is_on = false;
-                        CustomerConsole.displayMessage("atm.ATM SWITCH OFF");
+                        CustomerConsole.displayMessage("ATM SWITCH OFF");
                     } else {
                         CustomerConsole.displayMessage("Welcome To Main Menu " + cardReader.getCard().getName());
-                        Actions selectedAction = CustomerConsole.chooseAction();
+                        Action selectedAction = CustomerConsole.chooseAction();
                         performSelectedAction(selectedAction);
+                        if (selectedAction != Action.EXIT) CustomerConsole.checkCancel();
                     }
+                } catch (NullPointerException |
+                        CustomerNotFoundException |
+                        IncorrectPinException exception) {
+                    CustomerConsole.displayMessage(exception.getMessage());
+                    break;
                 }
             }
             ejectCard();
-            CustomerConsole.displayMessage("atm.Card is ejecting");
+            CustomerConsole.displayMessage("Card is ejecting");
             CustomerConsole.displayMessage("Please take your card");
         }
     }
 
-    protected void readCard() {
-
+    protected void readCard() throws NullPointerException {
         CustomerConsole.displayMessage("Please insert your card info");
         cardReader.readCard();
         if (!cardReader.cardIsValid()) {
             cardReader.ejectCard();
-            CustomerConsole.displayMessage("Something went wrong, try again");
+            throw new NullPointerException("Something went wrong, try again");
         }
     }
 
@@ -69,8 +87,7 @@ public abstract class ATMAbstract implements ATMInterface {
         return null;
     }
 
-    protected void addCash(Cash cash) {
-        System.out.println("Adding cash" + cash.toString());
+    public void addCash(Double cash) {
         cashDispenser.addCash(cash);
     }
 
@@ -83,7 +100,7 @@ public abstract class ATMAbstract implements ATMInterface {
         return false;
     }
 
-    protected void performSelectedAction(Actions action) {
+    protected void performSelectedAction(Action action) {
         switch (action) {
             case CHECK_BALANCE:
                 checkBalance();
@@ -105,20 +122,37 @@ public abstract class ATMAbstract implements ATMInterface {
         }
     }
 
-    protected void dispenseCash(Cash cash) {
-
-    }
-
     protected void checkBalance() {
         System.out.println("checkBalance");
     }
 
     protected void withdrawal() {
-        System.out.println("withdrawal");
+        CustomerConsole.displayMessage("Start withdraw transaction");
+        double amount = CustomerConsole.withdrawProcess();
+        try {
+            cashDispenser.dispenseCash(amount);
+            CustomerConsole.displayMessage("Take your cash: " + amount);
+        } catch (CashNotEnoughException exception) {
+            CustomerConsole.displayMessage(exception.getMessage());
+        }
+        CustomerConsole.displayMessage("Finish withdraw transaction");
     }
 
     protected void deposit() {
-        System.out.println("deposit");
+        CustomerConsole.displayMessage("Start deposit transaction");
+        double banknote;
+        double wholeDeposit = 0.0;
+        do {
+            try {
+                banknote = CustomerConsole.acceptCash();
+                cashDispenser.addCash(banknote);
+                wholeDeposit += banknote;
+            } catch (InputMismatchException exception) {
+                CustomerConsole.displayMessage(exception.getMessage());
+            }
+        } while (CustomerConsole.continueOperation());
+        CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
+        CustomerConsole.displayMessage("Finish deposit transaction");
     }
 
     protected void changePIN() {

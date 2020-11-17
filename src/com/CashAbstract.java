@@ -1,8 +1,6 @@
 package com;
 
-import java.util.Objects;
-
-public abstract class CashAbstract implements CashInterface {
+public abstract class CashAbstract {
 
     private double amount;
     private final double DEFAULT_CASH = 0;
@@ -15,6 +13,10 @@ public abstract class CashAbstract implements CashInterface {
         this.amount = amount;
     }
 
+    public abstract void addAmount(double amount);
+
+    public abstract void subtractAmount(double amount);
+
     public double getAmount() {
         return amount;
     }
@@ -24,40 +26,7 @@ public abstract class CashAbstract implements CashInterface {
     }
 
     @Override
-    public void add(Cash cash) {
-        amount += cash.getAmount();
-    }
-
-    @Override
-    public void subtract(Cash cash) {
-        amount -= cash.getAmount();
-    }
-
-    @Override
-    public boolean greaterThan(Cash cash) {
-        return amount > cash.getAmount();
-    }
-
-    @Override
-    public boolean lessThan(Cash cash) {
-        return amount < cash.getAmount();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CashAbstract)) return false;
-        CashAbstract that = (CashAbstract) o;
-        return Double.compare(that.amount, amount) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(amount);
-    }
-
-    @Override
     public String toString() {
-        return " " + amount;
+        return "Amount = " + amount;
     }
 }

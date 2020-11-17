@@ -15,6 +15,17 @@ import java.util.LinkedHashMap;
 public class DataBase extends DataBaseAbstract{
     public DataBase() {
         super();
+        //Admin
+        LinkedHashMap<CardInfo, String> admin = new LinkedHashMap<>();
+        admin.put(CardInfo.NAME, "Admin");
+        admin.put(CardInfo.SURNAME, "Admin");
+        admin.put(CardInfo.CARD_NUMBER, "000000000000000");
+        Card adminCard = new Card(admin);
+        Customer adminCustomer = new Customer("Admin", "Admin", "Admin@Admin", "Admin", "Admin");
+        this.addCustomer(adminCustomer);
+        card_pins.put(admin, "1111");
+        customer_cards.put(admin, adminCustomer);
+
         LinkedHashMap<CardInfo, String> c1 = new LinkedHashMap<>();
         c1.put(CardInfo.NAME, "Artak");
         c1.put(CardInfo.SURNAME, "Kirakosyan");
