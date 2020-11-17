@@ -7,7 +7,7 @@ public abstract class AccountAbstract implements AccountInterface{
     private final String ACCOUNT_NUMBER;
     private final AccountType ACCOUNT_TYPE;
     private final AccountCurrency ACCOUNT_CURRENCY;
-    private final int ACCOUNT_NUMBER_LENGTH = 16;
+    public final static int ACCOUNT_NUMBER_LENGTH = 16;
 
     public AccountAbstract(String accountNumber, AccountType accountType, AccountCurrency accountCurrency) {
         if (accountNumber.length() != ACCOUNT_NUMBER_LENGTH) throw new RuntimeException("Incorrect account number length");
