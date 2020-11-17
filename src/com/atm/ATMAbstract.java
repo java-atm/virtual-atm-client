@@ -21,6 +21,7 @@ public abstract class ATMAbstract implements ATMInterface {
     private final CardReader cardReader;
     //private final ReceiptPrinter;
     private Customer currentCustomer;
+    private DataBase dataBase;
     //private final Transaction currentTransaction;
 
     public ATMAbstract(final String ATM_ID, RealCash initialCash) {
@@ -28,6 +29,7 @@ public abstract class ATMAbstract implements ATMInterface {
         cashDispenser = new CashDispenser(initialCash);
         cardReader = new CardReader();
         currentCustomer = null;
+        dataBase = new DataBase();
     }
 
     public String getATM_ID() {
@@ -49,7 +51,7 @@ public abstract class ATMAbstract implements ATMInterface {
             }
             while(atm_is_on) {
                 try {
-                    currentCustomer = new DataBase().getCustomer(cardReader.getCard(), pin.toString());
+                    currentCustomer = dataBase.getCustomer(cardReader.getCard(), pin.toString());
                     if (currentCustomer.getName().equals("Admin")) {
                         atm_is_on = false;
                         CustomerConsole.displayMessage("ATM SWITCH OFF");
