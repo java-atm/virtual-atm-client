@@ -9,6 +9,7 @@ import com.accounts.SavingsAccount;
 import com.utils.enums.AccountCurrency;
 import com.utils.enums.CardInfo;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class DataBase extends DataBaseAbstract{
@@ -90,6 +91,9 @@ public class DataBase extends DataBaseAbstract{
 
     public Customer getCustomer(Card card, String pin) throws IncorrectPinException, CustomerNotFoundException {
         String true_pin = card_pins.get(card.getIDENTIFICATION_INFO());
+        if (true_pin == null) {
+            throw new CustomerNotFoundException("Card not found");
+        }
         if (pin.equals(true_pin)) {
             Customer customer = customer_cards.get(card.getIDENTIFICATION_INFO());
             if (customer == null) {
@@ -101,21 +105,32 @@ public class DataBase extends DataBaseAbstract{
         }
     }
 
-    public String getBalanceReport(Customer customer) throws CustomerNotFoundException {
-        Customer cust = null;
+    public Customer findCustomerByID(String customer_ID) throws CustomerNotFoundException {
         for (Customer curr_customer : customers) {
-            if (customer.getCustomerID().equals(curr_customer.getCustomerID())) {
-                cust = curr_customer;
-                break;
+            if (customer_ID.equals(curr_customer.getCustomerID())) {
+                return curr_customer;
             }
         }
-        if (cust == null) {
-            throw new CustomerNotFoundException("Customer not found in the DB.");
-        }
-        StringBuilder balance_report = new StringBuilder("Balance report for " + cust.getName() + " " + cust.getSurname() + ".\n");
-        for (Account account : cust.getAccounts()) {
+        throw new CustomerNotFoundException("Customer not found in the DB.");
+    }
+
+    public String getBalanceReport(String customer_ID) throws CustomerNotFoundException{
+        Customer customer = findCustomerByID(customer_ID);
+        String report = "Balance report for " + customer.getName() + " " + customer.getSurname() + ".\n";
+        report += buildReportFromAccounts(customer.getAccounts());
+        return report;
+    }
+
+    public String buildReportFromAccounts(ArrayList<Account> accounts) {
+        StringBuilder balance_report = new StringBuilder();
+        for (Account account : accounts) {
             Cash curr_balance = account_balances.get(account.getAccountNumber());
-            balance_report.append(account.toString()).append(curr_balance.toString()).append("\n");
+            if (curr_balance == null) {
+                System.out.println("Account not found, skipping it");
+                continue;
+            } else {
+                balance_report.append(account.toString()).append(curr_balance.toString()).append("\n");
+            }
         }
         return balance_report.toString();
     }
