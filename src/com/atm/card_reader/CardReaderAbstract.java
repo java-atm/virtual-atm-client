@@ -4,6 +4,7 @@ import com.Card;
 import com.utils.enums.CardInfo;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public abstract class CardReaderAbstract {
@@ -21,7 +22,7 @@ public abstract class CardReaderAbstract {
         return card;
     }
 
-    public void readCard() {
+    public void readCard() throws CardIsInvalidException {
         LinkedHashMap<CardInfo,String> cardIdentifyInfo = new LinkedHashMap<>();
         String info;
         for (CardInfo cardInfo : CardInfo.values()) {
@@ -29,12 +30,15 @@ public abstract class CardReaderAbstract {
             info = scanner.nextLine();
             cardIdentifyInfo.put(cardInfo, info);
         }
+        checkCardIsValid(cardIdentifyInfo);
         card = new Card(cardIdentifyInfo);
     }
 
-    public boolean cardIsValid() {
-        String cardNumber = card.getCardNumber();
-        return cardNumber.length() <= Card.ID_MAX_LENGTH && cardNumber.length() >= Card.ID_MIN_LENGTH;
+    private void checkCardIsValid(LinkedHashMap<CardInfo, String> cardIdentifyInfo) throws CardIsInvalidException {
+        int cardNumberLength = cardIdentifyInfo.get(CardInfo.CARD_NUMBER).length();
+        if (cardNumberLength >= Card.ID_MAX_LENGTH || cardNumberLength <= Card.ID_MIN_LENGTH) {
+            throw new CardIsInvalidException("Invalid Card");
+        }
     }
 
     public void ejectCard() {

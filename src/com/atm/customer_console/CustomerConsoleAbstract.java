@@ -1,6 +1,8 @@
 package com.atm.customer_console;
 
-import com.Cash;
+import com.InvalidBanknoteException;
+import com.atm.CancelException;
+import com.db.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
 
@@ -8,7 +10,7 @@ import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public abstract class CustomerConsoleAbstract implements CustomerConsoleInterface {
-    private static Scanner console = initConsole();
+    private static final Scanner console = initConsole();
 
     public CustomerConsoleAbstract() {
 
@@ -18,7 +20,7 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
         return new Scanner(System.in);
     }
 
-    public static Integer askPIN() throws InputMismatchException{
+    public static Integer askPIN() throws IncorrectPinException {
         Integer pin = null;
         int attempts_count = 0;
         final int MAX_ATTEMPTS = 3;
@@ -28,9 +30,9 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
             attempts_count++;
             try {
                 pin = console.nextInt();
-                if (!checkPinIsValid(pin)) throw new InputMismatchException("Something went wrong");
+                if (!checkPinIsValid(pin)) throw new IncorrectPinException("Something went wrong");
                 break;
-            } catch (InputMismatchException exception) {
+            } catch (IncorrectPinException exception) {
                 pin = null;
                 displayMessage("Failed to read the pin.");
                 if (attempts_count == MAX_ATTEMPTS) throw exception;
@@ -41,67 +43,45 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
         return pin;
     }
 
-    public static void checkCancel() {
-        displayMessage("Do you want to perform another transaction ? Yes (y) No (n)");
-        //Demo version // Don't care about that what I wrote here
-        String cancel;
-        try {
-            cancel = console.nextLine();
-            if(cancel.equals("n")) throw new NullPointerException("");
-        } catch (NullPointerException exception) {
-            throw new NullPointerException();
-        }
-    }
-
-    public static boolean continueOperation() {
-        displayMessage("Continue operation? Yes(any), No(0)");
-        int accept;
-        try {
-            accept = console.nextInt();
-            return accept != 0;
-        } catch (InputMismatchException exception) {
-            return true;
-        } finally {
-            console.nextLine();
-        }
+    public static void continueOperation() throws CancelException {
+        String cancel = console.nextLine();
+        if(cancel.equals("n")) throw new CancelException("Have a good day");
     }
 
     private static boolean checkPinIsValid(Integer pin) {
         return pin.toString().length() == 4;
     }
 
-    public static double acceptCash() throws InputMismatchException{
+    public static double acceptCash() throws InvalidBanknoteException{
         displayMessage("Please, put in your banknotes");
-        double banknote;
-        try {
-            banknote = console.nextDouble();
-            invalidBanknote(banknote);
-            displayMessage("You put in: " + banknote);
-        } finally {
-            console.nextLine();
-        }
+
+        double banknote = console.nextDouble();
+        isBanknoteValid(banknote);
+        displayMessage("You put in: " + banknote);
+        console.nextLine();
+
         return banknote;
     }
 
-    private static void invalidBanknote(double banknote) throws InputMismatchException{
+    private static void isBanknoteValid(double banknote) throws InvalidBanknoteException {
         Banknote[] banknotes = Banknote.values();
         for(Banknote one_banknote : banknotes) {
             if(one_banknote.getBanknote() == banknote) {
                 return;
             }
         }
-        throw new InputMismatchException("Something went wrong, take your banknote");
+        throw new InvalidBanknoteException("Invalid banknote, take that");
     }
 
-    public static double withdrawProcess() {
+    public static double askAmount() {
         double amount;
         displayMessage("Please, enter amount");
         while(true) {
             try {
                 amount = console.nextDouble();
-                if (amount % Banknote.BANKNOTE_10.getBanknote() != 0) throw new InputMismatchException("");
+                if (amount % Banknote.MINIMAL_BANKNOTE != 0) throw new InvalidBanknoteException("");
                 break;
-            } catch (InputMismatchException exception) {
+            } catch (InputMismatchException | InvalidBanknoteException exception) {
                 CustomerConsole.displayMessage("Please, enter right amount");
             } finally {
                 console.nextLine();
@@ -133,14 +113,10 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
         return accountNumber.length() == 16;
     }
 
-    public static Cash askAmount() {
-        return null;
-    }
-
     public static Action chooseAction() {
         displayMessage("Please choose an action");
         boolean rightAction = false;
-        int action = -1;
+        int action = 0;
         while(!rightAction) {
             displayActions();
             try {
@@ -148,8 +124,8 @@ public abstract class CustomerConsoleAbstract implements CustomerConsoleInterfac
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
+                displayMessage(exception.getMessage());
                 displayMessage("Please choose an action from the list");
-                System.out.println(exception.getMessage());
             } finally {
                 console.nextLine();
             }
