@@ -16,6 +16,7 @@ public enum Banknote {
     BANKNOTE_10(10.00);
 
     private final double banknote;
+    public static final double MINIMAL_BANKNOTE = BANKNOTE_10.getBanknote();
 
     Banknote(double banknote) {
         this.banknote = banknote;

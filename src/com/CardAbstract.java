@@ -15,18 +15,22 @@ public abstract class CardAbstract implements CardInterface {
         IDENTIFICATION_INFO = identifyInfo;
     }
 
+    @Override
     public String getCardNumber() {
         return IDENTIFICATION_INFO.get(CardInfo.CARD_NUMBER);
     }
 
+    @Override
     public String getName() {
         return IDENTIFICATION_INFO.get(CardInfo.NAME);
     }
 
+    @Override
     public String getSurname() {
         return IDENTIFICATION_INFO.get(CardInfo.SURNAME);
     }
 
+    @Override
     public LinkedHashMap<CardInfo, String> getIDENTIFICATION_INFO() {
         return IDENTIFICATION_INFO;
     }

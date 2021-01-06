@@ -13,9 +13,9 @@ public class RealCash extends CashAbstract {
         initBanknotes(0);
     }
 
-    public RealCash(double initialAmount) throws InvalidBanknoteException {
-        if (initialAmount % Banknote.BANKNOTE_10.getBanknote() != 0)
-            throw new InvalidBanknoteException("Invalid Banknote");
+    public RealCash(double initialAmount) {
+//        if (initialAmount % Banknote.BANKNOTE_10.getBanknote() != 0)
+//            throw new InvalidBanknoteException("Invalid Banknote");
         banknotes = new LinkedHashMap<>();
         initBanknotes(initialAmount);
     }
