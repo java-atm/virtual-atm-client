@@ -2,7 +2,7 @@ package com.atm.customer_console;
 
 import com.InvalidBanknoteException;
 import com.atm.CancelException;
-import com.db.IncorrectPinException;
+import com.backend_connection.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
 

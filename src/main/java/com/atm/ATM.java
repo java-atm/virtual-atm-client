@@ -7,7 +7,7 @@ import com.atm.card_reader.CardIsInvalidException;
 import com.atm.card_reader.CardReader;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
-import com.db.DataBase;
+import com.backend_connection.BackendConnection;
 import com.utils.enums.Action;
 
 public class ATM implements ATMInterface {
@@ -17,7 +17,7 @@ public class ATM implements ATMInterface {
     private final CardReader cardReader;
     //private final ReceiptPrinter;
     private Customer currentCustomer;
-    private DataBase dataBase;
+    private final BackendConnection backendConnection;
     //private final Transaction currentTransaction;
 
     public ATM(final String ATM_ID, RealCash initialCash) {
@@ -25,7 +25,7 @@ public class ATM implements ATMInterface {
         cashDispenser = new CashDispenser(initialCash);
         cardReader = new CardReader();
         currentCustomer = null;
-        dataBase = new DataBase();
+        backendConnection = new BackendConnection();
     }
 
     public String getATM_ID() {
@@ -40,7 +40,7 @@ public class ATM implements ATMInterface {
             try {
                 readCard();
                 pin = CustomerConsole.askPIN();
-                currentCustomer = dataBase.getCustomer(cardReader.getCard(), pin.toString());
+                String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin.toString());
                 serveCustomer();
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;

@@ -1,19 +1,26 @@
-package com.db;
+package com.backend_connection;
 
-import com.*;
-
+import com.Card;
+import com.Cash;
+import com.Customer;
 import com.accounts.Account;
 import com.accounts.CardAccount;
 import com.accounts.CurrentAccount;
 import com.accounts.SavingsAccount;
 import com.utils.enums.AccountCurrency;
 import com.utils.enums.CardInfo;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-public class DataBase extends DataBaseAbstract{
-    public DataBase() {
+public class BackendConnection extends DataBaseAbstract{
+    public BackendConnection() {
         super();
         //Admin
         LinkedHashMap<CardInfo, String> admin = new LinkedHashMap<>();
@@ -100,20 +107,59 @@ public class DataBase extends DataBaseAbstract{
         account_balances.put(acc9.getAccountNumber(), new Cash(745));
     }
 
-    public Customer getCustomer(Card card, String pin) throws IncorrectPinException, CustomerNotFoundException, CardNotFoundException {
-        String true_pin = card_pins.get(card.getIDENTIFICATION_INFO());
-        if (true_pin == null) {
-            throw new CardNotFoundException("Card not found");
-        }
-        if (pin.equals(true_pin)) {
-            Customer customer = customer_cards.get(card.getIDENTIFICATION_INFO());
-            if (customer == null) {
-                throw new CustomerNotFoundException("Customer not found");
+    public String authenticate(String ATM_ID, Card card, String pin) throws IncorrectPinException, CustomerNotFoundException, CardNotFoundException, IOException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
+        jsonObject.put("card_info", card.getIDENTIFICATION_INFO());
+        jsonObject.put("pin", pin);
+        String query = "http://localhost:8080/ATM_Server_war_exploded/servlet";
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
+
+        connection.setConnectTimeout(250);
+        connection.setReadTimeout(250);
+        connection.setDoOutput(true);
+        connection.getOutputStream().write(jsonObject.toString().getBytes());
+        connection.connect();
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if(HttpURLConnection.HTTP_OK == connection.getResponseCode()) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
             }
-            return customer;
+
+            System.out.println(stringBuilder.toString());
+            connection.disconnect();
+            return stringBuilder.toString();
+
         } else {
-            throw new IncorrectPinException("Pins didn't match");
+            connection.disconnect();
+            throw new CustomerNotFoundException("Customer not found in Database during connection");
         }
+//        else if(HttpURLConnection.HTTP_BAD_REQUEST == connection.getResponseCode()) {
+//
+//        } else {
+//        }
+
+
+
+
+//        String true_pin = card_pins.get(card.getIDENTIFICATION_INFO());
+//        if (true_pin == null) {
+//            throw new CardNotFoundException("Card not found");
+//        }
+//        if (pin.equals(true_pin)) {
+//            Customer customer = customer_cards.get(card.getIDENTIFICATION_INFO());
+//            if (customer == null) {
+//                throw new CustomerNotFoundException("Customer not found");
+//            }
+//            return customer;
+//        } else {
+//            throw new IncorrectPinException("Pins didn't match");
+//        }
     }
 
     public Customer findCustomerByID(String customer_ID) throws CustomerNotFoundException {

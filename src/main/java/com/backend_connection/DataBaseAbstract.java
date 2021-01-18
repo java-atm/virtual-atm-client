@@ -1,9 +1,7 @@
-package com.db;
+package com.backend_connection;
 
-import com.Card;
 import com.Cash;
 import com.Customer;
-import com.accounts.Account;
 import com.utils.enums.CardInfo;
 
 import java.util.ArrayList;
