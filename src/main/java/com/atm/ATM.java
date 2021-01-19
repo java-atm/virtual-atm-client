@@ -41,12 +41,13 @@ public class ATM implements ATMInterface {
                 readCard();
                 pin = CustomerConsole.askPIN();
                 String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin.toString());
+                System.out.println(customerID);
                 serveCustomer();
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;
                 CustomerConsole.displayMessage(exception.getMessage());
             } catch (Exception exception) {
-                CustomerConsole.displayMessage(exception.getMessage());
+                CustomerConsole.displayMessage(exception.getMessage() + " esa");
             } finally {
                 ejectCard();
                 CustomerConsole.displayMessage("Card is ejecting");
@@ -57,13 +58,13 @@ public class ATM implements ATMInterface {
 
     private void serveCustomer() throws CancelException {
         while(true) {
-            if (currentCustomer.getName().equals("Admin")) { // temp statement
-                throw new CancelException("ATM POWER OFF");
-            } else {
+//            if (currentCustomer.getName().equals("Admin")) { // temp statement
+//                throw new CancelException("ATM POWER OFF");
+//            } else {
                 CustomerConsole.displayMessage("Welcome To Main Menu " + cardReader.getCard().getName());
                 Action selectedAction = CustomerConsole.chooseAction();
                 performSelectedAction(selectedAction);
-            }
+            //}
             try {
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
                 CustomerConsole.continueOperation();

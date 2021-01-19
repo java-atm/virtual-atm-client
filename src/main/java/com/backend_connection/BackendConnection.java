@@ -112,12 +112,12 @@ public class BackendConnection extends DataBaseAbstract{
         jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("card_info", card.getIDENTIFICATION_INFO());
         jsonObject.put("pin", pin);
-        String query = "http://localhost:8080/ATM_Server_war_exploded/servlet";
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/auth";
 
         HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
 
-        connection.setConnectTimeout(250);
-        connection.setReadTimeout(250);
+        connection.setConnectTimeout(1000);
+        connection.setReadTimeout(1000);
         connection.setDoOutput(true);
         connection.getOutputStream().write(jsonObject.toString().getBytes());
         connection.connect();
@@ -130,8 +130,9 @@ public class BackendConnection extends DataBaseAbstract{
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-
             System.out.println(stringBuilder.toString());
+
+            //System.out.println(stringBuilder.toString());
             connection.disconnect();
             return stringBuilder.toString();
 
