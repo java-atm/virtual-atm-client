@@ -10,6 +10,10 @@ import com.atm.customer_console.CustomerConsole;
 import com.backend_connection.BackendConnection;
 import com.utils.enums.Action;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ATM implements ATMInterface {
 
     private final String ATM_ID;
@@ -41,7 +45,9 @@ public class ATM implements ATMInterface {
                 readCard();
                 pin = CustomerConsole.askPIN();
                 String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin.toString());
-                System.out.println(customerID);
+                currentCustomer = new Customer(customerID,
+                                               cardReader.getCard().getName(),
+                                               cardReader.getCard().getSurname());
                 serveCustomer();
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;
@@ -58,13 +64,9 @@ public class ATM implements ATMInterface {
 
     private void serveCustomer() throws CancelException {
         while(true) {
-//            if (currentCustomer.getName().equals("Admin")) { // temp statement
-//                throw new CancelException("ATM POWER OFF");
-//            } else {
-                CustomerConsole.displayMessage("Welcome To Main Menu " + cardReader.getCard().getName());
-                Action selectedAction = CustomerConsole.chooseAction();
-                performSelectedAction(selectedAction);
-            //}
+            CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
+            Action selectedAction = CustomerConsole.chooseAction();
+            performSelectedAction(selectedAction);
             try {
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
                 CustomerConsole.continueOperation();
@@ -107,7 +109,18 @@ public class ATM implements ATMInterface {
     }
 
     protected void checkBalance() {
-        System.out.println("checkBalance");
+        try {
+            HashMap<String, BigDecimal> balances = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
+            CustomerConsole.displayMessage("Account number : balance");
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Map.Entry<String, BigDecimal> balance : balances.entrySet()) {
+                stringBuilder.append(balance.getKey()).append(" : ").append(balance.getValue()).append("\n");
+            }
+            CustomerConsole.displayMessage(stringBuilder.toString());
+        } catch (Exception ex) {
+            CustomerConsole.displayMessage("Some information");
+        }
+
     }
 
     protected void withdraw() {
