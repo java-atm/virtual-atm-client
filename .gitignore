@@ -1,4 +1,5 @@
 .idea
 out
-Main.java
-Main.class
+src/main/java/Main.java
+test
+target

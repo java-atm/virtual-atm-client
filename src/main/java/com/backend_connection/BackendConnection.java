@@ -1,19 +1,25 @@
-package com.db;
+package com.backend_connection;
 
-import com.*;
-
+import com.Card;
+import com.Cash;
+import com.Customer;
 import com.accounts.Account;
 import com.accounts.CardAccount;
 import com.accounts.CurrentAccount;
 import com.accounts.SavingsAccount;
 import com.utils.enums.AccountCurrency;
 import com.utils.enums.CardInfo;
+import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
 
-public class DataBase extends DataBaseAbstract{
-    public DataBase() {
+public class BackendConnection extends DataBaseAbstract{
+    public BackendConnection() {
         super();
         //Admin
         LinkedHashMap<CardInfo, String> admin = new LinkedHashMap<>();
@@ -100,20 +106,66 @@ public class DataBase extends DataBaseAbstract{
         account_balances.put(acc9.getAccountNumber(), new Cash(745));
     }
 
-    public Customer getCustomer(Card card, String pin) throws IncorrectPinException, CustomerNotFoundException, CardNotFoundException {
-        String true_pin = card_pins.get(card.getIDENTIFICATION_INFO());
-        if (true_pin == null) {
-            throw new CardNotFoundException("Card not found");
+    public String authenticate(String ATM_ID, Card card, String pin) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
+        jsonObject.put("card_info", card.getIDENTIFICATION_INFO());
+        jsonObject.put("pin", pin);
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/auth";
+
+        return connection(query, jsonObject);
+    }
+
+    public HashMap<String, BigDecimal> checkBalance(String ATM_ID, String customerID) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
+        jsonObject.put("customerID", customerID);
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/checkBalance";
+
+        String balancesInJsonString = connection(query, jsonObject);
+        return jsonToMap(balancesInJsonString);
+    }
+
+    private  HashMap<String, BigDecimal> jsonToMap(String jsonStringToHashMap) {
+        JSONObject json = new JSONObject(jsonStringToHashMap);
+        Iterator<String> keys = json.keys();
+        HashMap<String, BigDecimal> balancesMap = new HashMap<>();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            BigDecimal balance = new BigDecimal(json.get(key).toString());
+            balancesMap.put(key, balance);
         }
-        if (pin.equals(true_pin)) {
-            Customer customer = customer_cards.get(card.getIDENTIFICATION_INFO());
-            if (customer == null) {
-                throw new CustomerNotFoundException("Customer not found");
+        return balancesMap;
+    }
+
+    private String connection(String query, JSONObject jsonObject) throws Exception{
+        HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
+        try(AutoCloseable autoCloseable = connection::disconnect) {
+
+            connection.setConnectTimeout(1000);
+            connection.setReadTimeout(1000);
+            connection.setDoOutput(true);
+            connection.getOutputStream().write(jsonObject.toString().getBytes());
+            connection.connect();
+
+            if(HttpURLConnection.HTTP_OK == connection.getResponseCode()) {
+                 BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                 return getResponseData(responseReader);
+            } else {
+                throw new CustomerNotFoundException("Customer not found in Database during connection");
             }
-            return customer;
-        } else {
-            throw new IncorrectPinException("Pins didn't match");
+        } catch (Exception ex) {
+            throw new Exception();
         }
+    }
+
+    private String getResponseData(BufferedReader responseReader) throws Exception {
+        StringBuilder responseData = new StringBuilder();
+        String line;
+        while ((line = responseReader.readLine()) != null) {
+            responseData.append(line);
+        }
+        return  responseData.toString();
     }
 
     public Customer findCustomerByID(String customer_ID) throws CustomerNotFoundException {

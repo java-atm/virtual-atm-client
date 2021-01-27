@@ -7,8 +7,12 @@ import com.atm.card_reader.CardIsInvalidException;
 import com.atm.card_reader.CardReader;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
-import com.db.DataBase;
+import com.backend_connection.BackendConnection;
 import com.utils.enums.Action;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ATM implements ATMInterface {
 
@@ -17,7 +21,7 @@ public class ATM implements ATMInterface {
     private final CardReader cardReader;
     //private final ReceiptPrinter;
     private Customer currentCustomer;
-    private DataBase dataBase;
+    private final BackendConnection backendConnection;
     //private final Transaction currentTransaction;
 
     public ATM(final String ATM_ID, RealCash initialCash) {
@@ -25,7 +29,7 @@ public class ATM implements ATMInterface {
         cashDispenser = new CashDispenser(initialCash);
         cardReader = new CardReader();
         currentCustomer = null;
-        dataBase = new DataBase();
+        backendConnection = new BackendConnection();
     }
 
     public String getATM_ID() {
@@ -40,13 +44,16 @@ public class ATM implements ATMInterface {
             try {
                 readCard();
                 pin = CustomerConsole.askPIN();
-                currentCustomer = dataBase.getCustomer(cardReader.getCard(), pin.toString());
+                String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin.toString());
+                currentCustomer = new Customer(customerID,
+                                               cardReader.getCard().getName(),
+                                               cardReader.getCard().getSurname());
                 serveCustomer();
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;
                 CustomerConsole.displayMessage(exception.getMessage());
             } catch (Exception exception) {
-                CustomerConsole.displayMessage(exception.getMessage());
+                CustomerConsole.displayMessage(exception.getMessage() + " esa");
             } finally {
                 ejectCard();
                 CustomerConsole.displayMessage("Card is ejecting");
@@ -57,13 +64,9 @@ public class ATM implements ATMInterface {
 
     private void serveCustomer() throws CancelException {
         while(true) {
-            if (currentCustomer.getName().equals("Admin")) { // temp statement
-                throw new CancelException("ATM POWER OFF");
-            } else {
-                CustomerConsole.displayMessage("Welcome To Main Menu " + cardReader.getCard().getName());
-                Action selectedAction = CustomerConsole.chooseAction();
-                performSelectedAction(selectedAction);
-            }
+            CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
+            Action selectedAction = CustomerConsole.chooseAction();
+            performSelectedAction(selectedAction);
             try {
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
                 CustomerConsole.continueOperation();
@@ -106,7 +109,18 @@ public class ATM implements ATMInterface {
     }
 
     protected void checkBalance() {
-        System.out.println("checkBalance");
+        try {
+            HashMap<String, BigDecimal> balances = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
+            CustomerConsole.displayMessage("Account number : balance");
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Map.Entry<String, BigDecimal> balance : balances.entrySet()) {
+                stringBuilder.append(balance.getKey()).append(" : ").append(balance.getValue()).append("\n");
+            }
+            CustomerConsole.displayMessage(stringBuilder.toString());
+        } catch (Exception ex) {
+            CustomerConsole.displayMessage("Some information");
+        }
+
     }
 
     protected void withdraw() {

@@ -1,4 +1,4 @@
-package com.db;
+package com.backend_connection;
 
 public class IncorrectPinException extends Exception{
     public IncorrectPinException(String errorMessage) {
