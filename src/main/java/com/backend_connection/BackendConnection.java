@@ -59,6 +59,34 @@ public class BackendConnection {
         connection(query, jsonObject);
     }
 
+    public void changePIN(String cardNumber, int newPIN) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("cardNumber", cardNumber);
+        jsonObject.put("newPin", newPIN);
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/changePin";
+
+        try {
+            connection(query, jsonObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void transfer(String fromAccount, String toAccount, String amountForTransfer) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("from", fromAccount);
+        jsonObject.put("to", toAccount);
+        jsonObject.put("currency", CURRENCY);
+        jsonObject.put("amount", amountForTransfer);
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/transfer";
+
+        try {
+            connection(query, jsonObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public HashMap<String, BigDecimal> getAccountsByCustomerID(String customerID, boolean includeBalances) throws Exception {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("customerID", customerID);

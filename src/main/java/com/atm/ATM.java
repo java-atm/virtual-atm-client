@@ -98,6 +98,9 @@ public class ATM implements ATMInterface {
             case DEPOSIT:
                 deposit();
                 break;
+            case TRANSFER:
+                transfer();
+                break;
             case PIN_CHANGE:
                 changePIN();
                 break;
@@ -107,6 +110,31 @@ public class ATM implements ATMInterface {
             default:
                 System.out.println("Do something");
         }
+    }
+
+    private void transfer() {
+        CustomerConsole.displayMessage("Start transfer transaction");
+        CustomerConsole.displayMessage("Choose account what you want to transfer from");
+
+        HashMap<String, BigDecimal> accounts = new HashMap<>();
+        try {
+            accounts = backendConnection.getAccountsByCustomerID(currentCustomer.getCustomerID(), true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        currentCustomer.setAccounts(accounts);
+        CustomerConsole.displayMessage("Account number : balance");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            stringBuilder.append(account.getKey()).append(" : ").append(account.getValue()).append("\n");
+        }
+        CustomerConsole.displayMessage(stringBuilder.toString());
+        String fromAccount = currentCustomer.getAccountByAccountNumber(new Scanner(System.in).nextInt());
+        CustomerConsole.displayMessage("Enter an account number where you want to transfer");
+        String toAccount = new Scanner(System.in).nextLine();
+        CustomerConsole.displayMessage("Enter amount which you want to transfer");
+        Integer amountForTransfer = new Scanner(System.in).nextInt();
+        backendConnection.transfer(fromAccount, toAccount, amountForTransfer.toString());
     }
 
     protected void checkBalance() {
@@ -208,7 +236,9 @@ public class ATM implements ATMInterface {
     }
 
     protected void changePIN() {
-        System.out.println("changePIN");
+        CustomerConsole.displayMessage("Enter your new PIN");
+        int newPIN = new Scanner(System.in).nextInt();
+        backendConnection.changePIN(cardReader.getCard().getCardNumber(), newPIN);
     }
 
     protected void exit() throws CancelException {
