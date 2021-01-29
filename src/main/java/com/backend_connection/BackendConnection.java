@@ -4,6 +4,7 @@ import com.Card;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
@@ -59,7 +60,7 @@ public class BackendConnection {
         connection(query, jsonObject);
     }
 
-    public void changePIN(String cardNumber, int newPIN) {
+    public void changePIN(String cardNumber, String newPIN) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("cardNumber", cardNumber);
         jsonObject.put("newPin", newPIN);
@@ -109,7 +110,7 @@ public class BackendConnection {
         return balancesMap;
     }
 
-    private String connection(String query, JSONObject jsonObject) throws Exception{
+    private String connection(String query, JSONObject jsonObject) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
         try(AutoCloseable autoCloseable = connection::disconnect) {
 
@@ -123,14 +124,15 @@ public class BackendConnection {
                  BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                  return getResponseData(responseReader);
             } else {
-                throw new CustomerNotFoundException("Customer not found in Database during connection");
+                throw new Exception("Something went wrong during connection " + connection.getResponseCode());
             }
-        } catch (Exception ex) {
-            throw new Exception();
+        } catch (IOException ex) {
+            throw new IOException("Something went wrong, during read your data");
         }
+
     }
 
-    private String getResponseData(BufferedReader responseReader) throws Exception {
+    private String getResponseData(BufferedReader responseReader) throws IOException {
         StringBuilder responseData = new StringBuilder();
         String line;
         while ((line = responseReader.readLine()) != null) {
