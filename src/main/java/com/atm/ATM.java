@@ -13,6 +13,7 @@ import com.utils.enums.Action;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class ATM implements ATMInterface {
 
@@ -97,6 +98,9 @@ public class ATM implements ATMInterface {
             case DEPOSIT:
                 deposit();
                 break;
+            case TRANSFER:
+                transfer();
+                break;
             case PIN_CHANGE:
                 changePIN();
                 break;
@@ -106,6 +110,31 @@ public class ATM implements ATMInterface {
             default:
                 System.out.println("Do something");
         }
+    }
+
+    private void transfer() {
+        CustomerConsole.displayMessage("Start transfer transaction");
+        CustomerConsole.displayMessage("Choose account what you want to transfer from");
+
+        HashMap<String, BigDecimal> accounts = new HashMap<>();
+        try {
+            accounts = backendConnection.getAccountsByCustomerID(currentCustomer.getCustomerID(), true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        currentCustomer.setAccounts(accounts);
+        CustomerConsole.displayMessage("Account number : balance");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            stringBuilder.append(account.getKey()).append(" : ").append(account.getValue()).append("\n");
+        }
+        CustomerConsole.displayMessage(stringBuilder.toString());
+        String fromAccount = currentCustomer.getAccountByAccountNumber(new Scanner(System.in).nextInt());
+        CustomerConsole.displayMessage("Enter an account number where you want to transfer");
+        String toAccount = new Scanner(System.in).nextLine();
+        CustomerConsole.displayMessage("Enter amount which you want to transfer");
+        Integer amountForTransfer = new Scanner(System.in).nextInt();
+        backendConnection.transfer(fromAccount, toAccount, amountForTransfer.toString());
     }
 
     protected void checkBalance() {
@@ -125,18 +154,61 @@ public class ATM implements ATMInterface {
 
     protected void withdraw() {
         CustomerConsole.displayMessage("Start withdraw transaction");
-        double amount = CustomerConsole.askAmount();
+
+        HashMap<String, BigDecimal> accounts = new HashMap<>();
         try {
-            cashDispenser.dispenseCash(amount);
-            CustomerConsole.displayMessage("Take your cash: " + amount);
-        } catch (CashNotEnoughException exception) {
-            CustomerConsole.displayMessage(exception.getMessage());
+            accounts = backendConnection.getAccountsByCustomerID(currentCustomer.getCustomerID(), true);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        currentCustomer.setAccounts(accounts);
+        CustomerConsole.displayMessage("Choose account what you want to perform withdraw from");
+        CustomerConsole.displayMessage("Account number : balance");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            stringBuilder.append(account.getKey()).append(" : ").append(account.getValue()).append("\n");
+        }
+        CustomerConsole.displayMessage(stringBuilder.toString());
+        String account = currentCustomer.getAccountByAccountNumber(new Scanner(System.in).nextInt());
+        BigDecimal balance = accounts.get(account);
+
+        double amount = CustomerConsole.askAmount();
+
+
+        if (balance.compareTo(BigDecimal.valueOf(amount)) >= 0) {
+            try {
+                cashDispenser.dispenseCash(amount);
+                backendConnection.withdraw(account, BigDecimal.valueOf(amount));
+            } catch (CashNotEnoughException exception) {
+                CustomerConsole.displayMessage(exception.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            CustomerConsole.displayMessage("YOU ARE A POOR-MAN");
+        }
+        CustomerConsole.displayMessage("Take your cash: " + amount);
+
         CustomerConsole.displayMessage("Finish withdraw transaction");
     }
 
     protected void deposit() {
         CustomerConsole.displayMessage("Start deposit transaction");
+        HashMap<String, BigDecimal> accounts = new HashMap<>();
+        try {
+            accounts = backendConnection.getAccountsByCustomerID(currentCustomer.getCustomerID(), true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        currentCustomer.setAccounts(accounts);
+        CustomerConsole.displayMessage("Choose account where you want to perform deposit");
+        CustomerConsole.displayMessage("Account number : balance");
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            stringBuilder.append(account.getKey()).append(" : ").append(account.getValue()).append("\n");
+        }
+        CustomerConsole.displayMessage(stringBuilder.toString());
+        String account = currentCustomer.getAccountByAccountNumber(new Scanner(System.in).nextInt());
         double banknote;
         double wholeDeposit = 0.0;
         while (true) {
@@ -152,12 +224,21 @@ public class ATM implements ATMInterface {
                 break;
             }
         }
+        if (wholeDeposit != 0.0) {
+            try {
+                backendConnection.deposit(account, new BigDecimal(wholeDeposit));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
         CustomerConsole.displayMessage("Finish deposit transaction");
     }
 
     protected void changePIN() {
-        System.out.println("changePIN");
+        CustomerConsole.displayMessage("Enter your new PIN");
+        int newPIN = new Scanner(System.in).nextInt();
+        backendConnection.changePIN(cardReader.getCard().getCardNumber(), newPIN);
     }
 
     protected void exit() throws CancelException {

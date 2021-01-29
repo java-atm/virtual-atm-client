@@ -2,11 +2,14 @@ package com;
 
 import com.accounts.Account;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class CustomerAbstract implements CustomerInterface{
     private final String CUSTOMER_ID;
-    private final ArrayList<Account> accounts;
+    private ArrayList<String> accounts;
     private String phoneNumber;
     private String email;
     private String name;
@@ -26,8 +29,14 @@ public abstract class CustomerAbstract implements CustomerInterface{
         return CUSTOMER_ID;
     }
 
-    public ArrayList<Account> getAccounts() {
+    public ArrayList<String> getAccounts() {
         return accounts;
+    }
+
+    public void setAccounts(HashMap<String, BigDecimal> accounts) {
+        for(Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            this.accounts.add(account.getKey());
+        }
     }
 
     public String getPhoneNumber() {
@@ -62,21 +71,15 @@ public abstract class CustomerAbstract implements CustomerInterface{
         this.surname = surname;
     }
     
-    public void addAccount(Account newAccount) {
-        accounts.add(newAccount);
-    }
+//    public void addAccount(Account newAccount) {
+//        accounts.add(newAccount);
+//    }
 
     public void removeAccount(Account account) {
         accounts.remove(account);
     }
 
-    @Override
-    public Account getAccountByAccountNumber(String accountNumber) {
-        for (Account account : accounts) {
-            if (account.getAccountNumber().equals(accountNumber)) {
-                return account;
-            }
-        }
-        return null;
+    public String getAccountByAccountNumber(int accountNumberIndex) {
+        return accounts.get(accountNumberIndex);
     }
 }
