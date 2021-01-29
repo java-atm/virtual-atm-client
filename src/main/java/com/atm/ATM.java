@@ -13,7 +13,6 @@ import com.utils.enums.Action;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Map;
 
 public class ATM implements ATMInterface {
 
@@ -135,15 +134,10 @@ public class ATM implements ATMInterface {
 
     protected void checkBalance() {
         try {
-            HashMap<String, BigDecimal> balances = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
-            CustomerConsole.displayMessage("Account number : balance");
-            StringBuilder stringBuilder = new StringBuilder();
-            for (Map.Entry<String, BigDecimal> balance : balances.entrySet()) {
-                stringBuilder.append(balance.getKey()).append(" : ").append(balance.getValue()).append("\n");
-            }
-            CustomerConsole.displayMessage(stringBuilder.toString());
+            accounts = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
+            CustomerConsole.displayAccounts(accounts);
         } catch (Exception ex) {
-            CustomerConsole.displayMessage("Some information");
+            CustomerConsole.displayMessage("Connection lost");
         }
 
     }

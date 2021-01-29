@@ -137,7 +137,7 @@ public interface CustomerConsole {
     }
 
     static void displayAccounts(HashMap<String, BigDecimal> accounts) {
-        CustomerConsole.displayMessage("#: Account number : balance");
+        CustomerConsole.displayMessage("#:   Account number : balance");
         StringBuilder stringBuilder = new StringBuilder();
         int count = 1;
         for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
