@@ -4,6 +4,7 @@ import com.Card;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
@@ -59,7 +60,7 @@ public class BackendConnection {
         connection(query, jsonObject);
     }
 
-    public void changePIN(String cardNumber, int newPIN) {
+    public void changePIN(String cardNumber, String newPIN) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("cardNumber", cardNumber);
         jsonObject.put("newPin", newPIN);
@@ -72,7 +73,7 @@ public class BackendConnection {
         }
     }
 
-    public void transfer(String fromAccount, String toAccount, String amountForTransfer) {
+    public void transfer(String fromAccount, String toAccount, String amountForTransfer) throws Exception{
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("from", fromAccount);
         jsonObject.put("to", toAccount);
@@ -80,11 +81,7 @@ public class BackendConnection {
         jsonObject.put("amount", amountForTransfer);
         String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/transfer";
 
-        try {
-            connection(query, jsonObject);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        connection(query, jsonObject);
     }
 
     public HashMap<String, BigDecimal> getAccountsByCustomerID(String customerID, boolean includeBalances) throws Exception {
@@ -109,7 +106,7 @@ public class BackendConnection {
         return balancesMap;
     }
 
-    private String connection(String query, JSONObject jsonObject) throws Exception{
+    private String connection(String query, JSONObject jsonObject) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
         try(AutoCloseable autoCloseable = connection::disconnect) {
 
@@ -123,14 +120,15 @@ public class BackendConnection {
                  BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                  return getResponseData(responseReader);
             } else {
-                throw new CustomerNotFoundException("Customer not found in Database during connection");
+                throw new Exception("Something went wrong during connection " + connection.getResponseCode());
             }
-        } catch (Exception ex) {
-            throw new Exception();
+        } catch (IOException ex) {
+            throw new IOException("Something went wrong, during read your data");
         }
+
     }
 
-    private String getResponseData(BufferedReader responseReader) throws Exception {
+    private String getResponseData(BufferedReader responseReader) throws IOException {
         StringBuilder responseData = new StringBuilder();
         String line;
         while ((line = responseReader.readLine()) != null) {

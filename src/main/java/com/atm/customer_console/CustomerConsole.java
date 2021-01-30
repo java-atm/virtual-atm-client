@@ -6,15 +6,18 @@ import com.backend_connection.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.Map;
 import java.util.Scanner;
 
 public interface CustomerConsole {
 
     Scanner console = new Scanner(System.in);
 
-    static Integer askPIN() throws IncorrectPinException {
-        Integer pin = null;
+    static String askPIN() throws IncorrectPinException {
+        String pin = null;
         int attempts_count = 0;
         final int MAX_ATTEMPTS = 3;
 
@@ -22,38 +25,52 @@ public interface CustomerConsole {
             displayMessage("Please enter your PIN: ");
             attempts_count++;
             try {
-                pin = console.nextInt();
-                if (!checkPinIsValid(pin)) throw new IncorrectPinException("Something went wrong");
+                pin = console.nextLine();
+                if (!pin.matches("^[0-9]+$")) throw new IncorrectPinException("Something went wrong");
                 break;
             } catch (IncorrectPinException exception) {
-                pin = null;
                 displayMessage("Failed to read the pin.");
                 if (attempts_count == MAX_ATTEMPTS) throw exception;
-            } finally {
-                console.nextLine();
             }
         }
         return pin;
     }
 
-    private static boolean checkPinIsValid(Integer pin) {
-        return pin.toString().length() == 4;
-    }
-
     static void continueOperation() throws CancelException {
         String cancel = console.nextLine();
-        if(cancel.equals("n")) throw new CancelException("Have a good day");
+        if(cancel.equals("n") || cancel.equals("N") ||
+           cancel.equals("no") || cancel.equals("No") ||
+           cancel.equals("nO") || cancel.equals("NO") ||
+           cancel.equals("n0") || cancel.equals("N0")) throw new CancelException("Have a good day");
     }
 
-    static double acceptCash() throws InvalidBanknoteException {
+    static double acceptCash() {
         displayMessage("Please, put in your banknotes");
-
-        double banknote = console.nextDouble();
-        isBanknoteValid(banknote);
-        displayMessage("You put in: " + banknote);
-        console.nextLine();
+        displayBanknotes();
+        double banknote = 0.0;
+        boolean endAcceptCash = false;
+        while(!endAcceptCash) {
+            try {
+                banknote = console.nextDouble();
+                isBanknoteValid(banknote);
+                displayMessage("You put in: " + banknote);
+                endAcceptCash = true;
+                console.nextLine();
+            } catch (InputMismatchException  ex) {
+                displayMessage("Invalid banknote, take that");
+            } catch (InvalidBanknoteException exception) {
+                displayMessage(exception.getMessage());
+            }
+        }
 
         return banknote;
+    }
+
+    static private void displayBanknotes() {
+        displayMessage("This is valid banknotes");
+        for (Banknote banknote : Banknote.values()) {
+            displayMessage(Double.toString(banknote.getBanknote()));
+        }
     }
 
     private static void isBanknoteValid(double banknote) throws InvalidBanknoteException {
@@ -83,27 +100,39 @@ public interface CustomerConsole {
         return amount;
     }
 
-    static String askAccountNumber() {
-        displayMessage("Please, insert your account number: ");
-        String accountNumber;
-        int attempts_count = 0;
-        final int MAX_ATTEMPTS = 3;
+    static BigDecimal askAmountForTransfer() {
+        BigDecimal amount;
+        displayMessage("Please, enter amount");
+        while(true) {
+            try {
+                amount = console.nextBigDecimal();
+                break;
+            } catch (InputMismatchException exception) {
+                CustomerConsole.displayMessage("Please, enter right amount");
+            } finally {
+                console.nextLine();
+            }
+        }
+        return amount;
+    }
 
-        while (attempts_count < MAX_ATTEMPTS){
-            attempts_count++;
+    static String askAccountNumber() {
+        displayMessage("Please, insert account number: ");
+        String accountNumber;
+
+        while (true){
             accountNumber = console.nextLine();
             if(checkAccountNumberIsValid(accountNumber)) {
                 return accountNumber;
             }
             displayMessage("Inserted account number is not valid");
             displayMessage("Try again");
-            displayMessage("Please, insert your account number: ");
+            displayMessage("Please, insert account number: ");
         }
-        return null;
     }
 
     private static boolean checkAccountNumberIsValid(String accountNumber) {
-        return accountNumber.length() == 16;
+        return accountNumber.length() == 16 && accountNumber.matches("^[0-9]+$");
     }
 
     static Action chooseAction() {
@@ -117,13 +146,43 @@ public interface CustomerConsole {
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
-                displayMessage(exception.getMessage());
                 displayMessage("Please choose an action from the list");
             } finally {
                 console.nextLine();
             }
         }
         return Action.values()[action];
+    }
+
+    static void displayAccounts(HashMap<String, BigDecimal> accounts) {
+        CustomerConsole.displayMessage("#:   Account number : balance");
+        StringBuilder stringBuilder = new StringBuilder();
+        int count = 1;
+        for (Map.Entry<String, BigDecimal> account : accounts.entrySet()) {
+            stringBuilder.append(count).append(": ").
+                    append(account.getKey()).append(" : ").
+                    append(account.getValue()).append("\n");
+            count++;
+        }
+        CustomerConsole.displayMessage(stringBuilder.toString());
+    }
+
+    static int chooseAccountIndex(int accountNumbers) {
+        displayMessage("Please choose an account");
+        boolean rightAccount = false;
+        int accountIndex = -1;
+        while(!rightAccount) {
+            try {
+                accountIndex = console.nextInt() - 1;
+                if(accountIndex < 0 || accountIndex > accountNumbers-1) throw new InputMismatchException("Please choose an account from the list");
+                rightAccount = true;
+            } catch (InputMismatchException exception) {
+                displayMessage(exception.getMessage());
+            } finally {
+                console.nextLine();
+            }
+        }
+        return accountIndex;
     }
 
     private static void displayActions() {
