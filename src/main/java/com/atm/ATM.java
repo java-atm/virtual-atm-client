@@ -195,8 +195,6 @@ public class ATM implements ATMInterface {
                     wholeDeposit += banknote;
                     CustomerConsole.displayMessage("Continue operation? Yes(any), No(n)");
                     CustomerConsole.continueOperation();
-                } catch (InvalidBanknoteException exception) {
-                    CustomerConsole.displayMessage(exception.getMessage());
                 } catch (CancelException exception) {
                     break;
                 }

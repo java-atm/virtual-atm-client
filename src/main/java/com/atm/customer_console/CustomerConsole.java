@@ -44,15 +44,33 @@ public interface CustomerConsole {
            cancel.equals("n0") || cancel.equals("N0")) throw new CancelException("Have a good day");
     }
 
-    static double acceptCash() throws InvalidBanknoteException {
+    static double acceptCash() {
         displayMessage("Please, put in your banknotes");
-
-        double banknote = console.nextDouble();
-        isBanknoteValid(banknote);
-        displayMessage("You put in: " + banknote);
-        console.nextLine();
+        displayBanknotes();
+        double banknote = 0.0;
+        boolean endAcceptCash = false;
+        while(!endAcceptCash) {
+            try {
+                banknote = console.nextDouble();
+                isBanknoteValid(banknote);
+                displayMessage("You put in: " + banknote);
+                endAcceptCash = true;
+                console.nextLine();
+            } catch (InputMismatchException  ex) {
+                displayMessage("Invalid banknote, take that");
+            } catch (InvalidBanknoteException exception) {
+                displayMessage(exception.getMessage());
+            }
+        }
 
         return banknote;
+    }
+
+    static private void displayBanknotes() {
+        displayMessage("This is valid banknotes");
+        for (Banknote banknote : Banknote.values()) {
+            displayMessage(Double.toString(banknote.getBanknote()));
+        }
     }
 
     private static void isBanknoteValid(double banknote) throws InvalidBanknoteException {
