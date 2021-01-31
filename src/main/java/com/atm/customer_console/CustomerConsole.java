@@ -6,6 +6,7 @@ import com.backend_connection.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
 
+import java.io.Console;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.InputMismatchException;
@@ -15,6 +16,7 @@ import java.util.Scanner;
 public interface CustomerConsole {
 
     Scanner console = new Scanner(System.in);
+    Console pinReader = System.console();
 
     static String askPIN() throws IncorrectPinException {
         String pin = null;
@@ -22,10 +24,11 @@ public interface CustomerConsole {
         final int MAX_ATTEMPTS = 3;
 
         while (attempts_count < MAX_ATTEMPTS) {
-            displayMessage("Please enter your PIN: ");
+            displayDialogMessage("Enter PIN: ");
             attempts_count++;
             try {
                 pin = console.nextLine();
+                //pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
                 if (!pin.matches("^[0-9]+$")) throw new IncorrectPinException("Something went wrong");
                 break;
             } catch (IncorrectPinException exception) {
@@ -45,8 +48,8 @@ public interface CustomerConsole {
     }
 
     static double acceptCash() {
-        displayMessage("Please, put in your banknotes");
         displayBanknotes();
+        displayDialogMessage("Please, put in your banknotes: ");
         double banknote = 0.0;
         boolean endAcceptCash = false;
         while(!endAcceptCash) {
@@ -68,9 +71,13 @@ public interface CustomerConsole {
 
     static private void displayBanknotes() {
         displayMessage("This is valid banknotes");
+        int counter = 1;
         for (Banknote banknote : Banknote.values()) {
-            displayMessage(Double.toString(banknote.getBanknote()));
+            counter++;
+            if(counter % 3 == 0) displayMessage("\n");
+            displayDialogMessage(banknote.getBanknote() + " ");
         }
+        displayMessage("\n");
     }
 
     private static void isBanknoteValid(double banknote) throws InvalidBanknoteException {
@@ -85,14 +92,14 @@ public interface CustomerConsole {
 
     static double askAmount() {
         double amount;
-        displayMessage("Please, enter amount");
+        displayDialogMessage("Please, enter amount: ");
         while(true) {
             try {
                 amount = console.nextDouble();
                 if (amount % Banknote.MINIMAL_BANKNOTE != 0) throw new InvalidBanknoteException("");
                 break;
-            } catch (InputMismatchException | InvalidBanknoteException exception) {
-                CustomerConsole.displayMessage("Please, enter right amount");
+            } catch (Exception ex) {
+                displayDialogMessage("Please, enter right amount: ");
             } finally {
                 console.nextLine();
             }
@@ -102,13 +109,13 @@ public interface CustomerConsole {
 
     static BigDecimal askAmountForTransfer() {
         BigDecimal amount;
-        displayMessage("Please, enter amount");
+        displayDialogMessage("Please, enter amount: ");
         while(true) {
             try {
                 amount = console.nextBigDecimal();
                 break;
             } catch (InputMismatchException exception) {
-                CustomerConsole.displayMessage("Please, enter right amount");
+                displayDialogMessage("Please, enter right amount: ");
             } finally {
                 console.nextLine();
             }
@@ -117,7 +124,7 @@ public interface CustomerConsole {
     }
 
     static String askAccountNumber() {
-        displayMessage("Please, insert account number: ");
+        displayDialogMessage("Please, insert account number: ");
         String accountNumber;
 
         while (true){
@@ -127,7 +134,7 @@ public interface CustomerConsole {
             }
             displayMessage("Inserted account number is not valid");
             displayMessage("Try again");
-            displayMessage("Please, insert account number: ");
+            displayDialogMessage("Please, insert account number: ");
         }
     }
 
@@ -136,17 +143,17 @@ public interface CustomerConsole {
     }
 
     static Action chooseAction() {
-        displayMessage("Please choose an action");
+        displayActions();
+        displayDialogMessage("Please choose an action: ");
         boolean rightAction = false;
         int action = 0;
         while(!rightAction) {
-            displayActions();
             try {
                 action = console.nextInt() - 1;
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
-                displayMessage("Please choose an action from the list");
+                displayDialogMessage("Please choose an action from the list: ");
             } finally {
                 console.nextLine();
             }
@@ -168,16 +175,17 @@ public interface CustomerConsole {
     }
 
     static int chooseAccountIndex(int accountNumbers) {
-        displayMessage("Please choose an account");
+        displayDialogMessage("Please choose an account: ");
         boolean rightAccount = false;
         int accountIndex = -1;
         while(!rightAccount) {
             try {
                 accountIndex = console.nextInt() - 1;
-                if(accountIndex < 0 || accountIndex > accountNumbers-1) throw new InputMismatchException("Please choose an account from the list");
+                if(accountIndex < 0 || accountIndex > accountNumbers-1)
+                    throw new InputMismatchException();
                 rightAccount = true;
             } catch (InputMismatchException exception) {
-                displayMessage(exception.getMessage());
+                displayDialogMessage("Please choose an account from the list: ");
             } finally {
                 console.nextLine();
             }
@@ -201,5 +209,9 @@ public interface CustomerConsole {
 
     static void displayMessage(String screenMsg) {
         System.out.println(screenMsg);
+    }
+
+    private static void displayDialogMessage(String dialogMsg) {
+        System.out.print(dialogMsg);
     }
 }

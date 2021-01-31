@@ -35,8 +35,9 @@ public class BackendConnection {
         return jsonToMap(balancesInJsonString);
     }
 
-    public void withdraw(String accountNumber, BigDecimal amount) {
+    public void withdraw(String ATM_ID, String accountNumber, BigDecimal amount) {
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("accountNumber", accountNumber);
         jsonObject.put("amount", amount);
         jsonObject.put("currency", CURRENCY);
@@ -50,8 +51,9 @@ public class BackendConnection {
     }
 
 
-    public void deposit(String accountNumber, BigDecimal amount) throws Exception {
+    public void deposit(String ATM_ID, String accountNumber, BigDecimal amount) throws Exception {
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("accountNumber", accountNumber);
         jsonObject.put("amount", amount);
         jsonObject.put("currency", CURRENCY);
@@ -60,8 +62,9 @@ public class BackendConnection {
         connection(query, jsonObject);
     }
 
-    public void changePIN(String cardNumber, String newPIN) {
+    public void changePIN(String ATM_ID, String cardNumber, String newPIN) {
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("cardNumber", cardNumber);
         jsonObject.put("newPin", newPIN);
         String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/changePin";
@@ -73,19 +76,29 @@ public class BackendConnection {
         }
     }
 
-    public void transfer(String fromAccount, String toAccount, String amountForTransfer) throws Exception{
+    public void transfer(String ATM_ID, String fromAccount, String toAccount, String amountForTransfer) throws Exception{
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("from", fromAccount);
         jsonObject.put("to", toAccount);
         jsonObject.put("currency", CURRENCY);
         jsonObject.put("amount", amountForTransfer);
         String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/transfer";
-
         connection(query, jsonObject);
     }
 
-    public HashMap<String, BigDecimal> getAccountsByCustomerID(String customerID, boolean includeBalances) throws Exception {
+    public String getToAccountOwnerName(String ATM_ID, String toAccount) throws Exception {
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
+        jsonObject.put("accountNumber", toAccount);
+        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/getCustomerName";
+        String name = connection(query, jsonObject);
+        return name;
+    }
+
+    public HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("customerID", customerID);
         jsonObject.put("includeBalances", includeBalances);
         String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/getAccountsByCustomerID";
