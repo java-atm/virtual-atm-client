@@ -1,10 +1,12 @@
 package com.atm.customer_console;
 
-import com.utils.exceptions.InvalidBanknoteException;
-import com.utils.exceptions.CancelException;
-import com.utils.exceptions.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
+import com.utils.exceptions.CancelException;
+import com.utils.exceptions.IncorrectPinException;
+import com.utils.exceptions.InvalidBanknoteException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Console;
 import java.math.BigDecimal;
@@ -18,7 +20,10 @@ public interface CustomerConsole {
     Scanner console = new Scanner(System.in);
     Console pinReader = System.console();
 
+    Logger LOGGER = LogManager.getLogger(CustomerConsole.class);
+
     static String askPIN() throws IncorrectPinException {
+        LOGGER.info("Waiting for reading PIN");
         String pin = null;
         int attempts_count = 0;
         final int MAX_ATTEMPTS = 3;
@@ -29,23 +34,32 @@ public interface CustomerConsole {
             try {
                 //for debugging use code below
                 pin = console.nextLine();
+                LOGGER.info("Entered PIN is: {}", pin);
                 //pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
-                if (!pin.matches("^[0-9]+$")) throw new IncorrectPinException("Something went wrong");
+                if (!pin.matches("^[0-9]+$") || pin.length() < 4 ) {
+                    throw new IncorrectPinException("Failed to read the PIN.");
+                }
                 break;
             } catch (IncorrectPinException exception) {
-                displayMessage("Failed to read the pin.");
-                if (attempts_count == MAX_ATTEMPTS) throw exception;
+                displayMessage(exception.getMessage());
+                LOGGER.warn("{}, PIN doesn't match", exception.getMessage());
+                if (attempts_count == MAX_ATTEMPTS) {
+                    LOGGER.error("Number of attempts ended");
+                    throw new IncorrectPinException("Number of attempts ended");
+                }
             }
         }
+        LOGGER.info("PIN is read: {}", pin);
         return pin;
     }
 
     static void continueOperation() throws CancelException {
         String cancel = console.nextLine();
+        LOGGER.info("Perform another transaction answer: {}", cancel);
         if(cancel.equals("n") || cancel.equals("N") ||
            cancel.equals("no") || cancel.equals("No") ||
            cancel.equals("nO") || cancel.equals("NO") ||
-           cancel.equals("n0") || cancel.equals("N0")) throw new CancelException("Have a good day");
+           cancel.equals("n0") || cancel.equals("N0")) throw new CancelException("Have a good day ❤️");
     }
 
     static double acceptCash() {
@@ -144,6 +158,7 @@ public interface CustomerConsole {
     }
 
     static Action chooseAction() {
+        LOGGER.info("Start choosing action");
         displayActions();
         displayDialogMessage("Please choose an action: ");
         boolean rightAction = false;
@@ -154,11 +169,13 @@ public interface CustomerConsole {
                 checkActionNumber(action);
                 rightAction = true;
             } catch (InputMismatchException exception) {
+                LOGGER.warn("Wrong number of action or not valid format");
                 displayDialogMessage("Please choose an action from the list: ");
             } finally {
                 console.nextLine();
             }
         }
+        LOGGER.info("Action is chosen: {}", Action.values()[action]);
         return Action.values()[action];
     }
 

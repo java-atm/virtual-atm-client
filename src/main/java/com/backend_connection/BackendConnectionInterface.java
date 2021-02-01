@@ -10,11 +10,11 @@ public interface BackendConnectionInterface {
 
     HashMap<String, BigDecimal> checkBalance(String ATM_ID, String customerID) throws Exception;
 
-    void withdraw(String ATM_ID, String accountNumber, BigDecimal amount);
+    void withdraw(String ATM_ID, String accountNumber, BigDecimal amount) throws Exception;
 
     void deposit(String ATM_ID, String accountNumber, BigDecimal amount) throws Exception;
 
-    void changePIN(String ATM_ID, String cardNumber, String newPIN);
+    void changePIN(String ATM_ID, String cardNumber, String newPIN) throws Exception;
 
     void transfer(String ATM_ID, String fromAccount, String toAccount, String amountForTransfer) throws Exception;
 

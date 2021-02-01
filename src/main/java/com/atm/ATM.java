@@ -2,20 +2,25 @@ package com.atm;
 
 import com.Customer;
 import com.RealCash;
-import com.utils.exceptions.CancelException;
-import com.utils.exceptions.CardIsInvalidException;
 import com.atm.card_reader.CardReader;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
 import com.backend_connection.BackendConnection;
+import com.utils.enums.Action;
+import com.utils.exceptions.CancelException;
+import com.utils.exceptions.CardIsInvalidException;
 import com.utils.exceptions.CashNotEnoughException;
 import com.utils.exceptions.IncorrectPinException;
-import com.utils.enums.Action;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 
 public class ATM implements ATMInterface {
+
+    public static final Logger LOGGER = LogManager.getLogger(ATM.class);
 
     private final String ATM_ID;
     private final CashDispenser cashDispenser;
@@ -40,13 +45,16 @@ public class ATM implements ATMInterface {
 
     @Override
     public void startATM() {
+        LOGGER.info("ATM started");
         while (true) {
             CustomerConsole.displayMessage(ATM_ID + " Home Screen");
             String pin;
             try {
                 readCard();
                 pin = CustomerConsole.askPIN();
+                LOGGER.info("PIN : {} \nCard number : {}", pin, cardReader.getCard().getCardNumber());
                 String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin);
+                LOGGER.info("Customer ID: {}", customerID);
                 currentCustomer = new Customer(customerID,
                                                cardReader.getCard().getName(),
                                                cardReader.getCard().getSurname());
@@ -56,6 +64,7 @@ public class ATM implements ATMInterface {
                 CustomerConsole.displayMessage(exception.getMessage());
             } catch (Exception exception) {
                 CustomerConsole.displayMessage(exception.getMessage());
+                LOGGER.error(exception);
                 //CustomerConsole.displayMessage(Arrays.toString(exception.getStackTrace()));
             } finally {
                 ejectCard();
@@ -66,14 +75,17 @@ public class ATM implements ATMInterface {
     }
 
     private void serveCustomer() throws CancelException {
+        LOGGER.info("Start serving customer");
         while(true) {
             CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
             Action selectedAction = CustomerConsole.chooseAction();
             performSelectedAction(selectedAction);
             try {
+                LOGGER.info("Dialog to choose another transaction");
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
                 CustomerConsole.continueOperation();
             } catch (CancelException exception) {
+                LOGGER.info("Customer cancel transactions");
                 CustomerConsole.displayMessage(exception.getMessage());
                 break;
             }
@@ -225,6 +237,8 @@ public class ATM implements ATMInterface {
             CustomerConsole.displayMessage("PIN has changed successfully");
         } catch (IncorrectPinException e) {
             CustomerConsole.displayMessage(e.getMessage());
+        } catch (Exception ex) {
+
         }
 
     }
