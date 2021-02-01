@@ -1,4 +1,4 @@
-package com.atm.card_reader;
+package com.utils.exceptions;
 
 public class CardIsInvalidException extends Exception {
     public CardIsInvalidException(String invalid_card) {

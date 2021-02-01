@@ -12,7 +12,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class BackendConnection {
+public class BackendConnection implements BackendConnectionInterface {
     private final static String CURRENCY = "AMD";
 
     public String authenticate(String ATM_ID, Card card, String pin) throws Exception {
@@ -92,8 +92,7 @@ public class BackendConnection {
         jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("accountNumber", toAccount);
         String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/getCustomerName";
-        String name = connection(query, jsonObject);
-        return name;
+        return connection(query, jsonObject);
     }
 
     public HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws Exception {
@@ -149,34 +148,4 @@ public class BackendConnection {
         }
         return  responseData.toString();
     }
-
-//    public Customer findCustomerByID(String customer_ID) throws CustomerNotFoundException {
-//        for (Customer curr_customer : customers) {
-//            if (customer_ID.equals(curr_customer.getCustomerID())) {
-//                return curr_customer;
-//            }
-//        }
-//        throw new CustomerNotFoundException("Customer not found in the DB.");
-//    }
-
-//    public String getBalanceReport(String customer_ID) throws CustomerNotFoundException{
-//        Customer customer = findCustomerByID(customer_ID);
-//        String report = "Balance report for " + customer.getName() + " " + customer.getSurname() + ".\n";
-//        report += buildReportFromAccounts(customer.getAccounts());
-//        return report;
-//    }
-
-//    public String buildReportFromAccounts(ArrayList<Account> accounts) {
-//        StringBuilder balance_report = new StringBuilder();
-//        for (Account account : accounts) {
-//            Cash curr_balance = account_balances.get(account.getAccountNumber());
-//            if (curr_balance == null) {
-//                System.out.println("Account not found, skipping it");
-//                continue;
-//            } else {
-//                balance_report.append(account.toString()).append(curr_balance.toString()).append("\n");
-//            }
-//        }
-//        return balance_report.toString();
-//    }
 }
