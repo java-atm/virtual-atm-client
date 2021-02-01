@@ -47,8 +47,7 @@ public class CashDispenser implements CashDispenserInterface{
 
         }
         if (amount != 0) {
-            System.out.println("Cash not enough. Please call maintenance.");
-            throw new CashNotEnoughException("ATM doesn't have enough money");
+            throw new CashNotEnoughException("Cash not enough. Please call maintenance.");
         }
         this.cash = tempCash;
     }

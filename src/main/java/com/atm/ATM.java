@@ -1,7 +1,6 @@
 package com.atm;
 
 import com.Customer;
-import com.InvalidBanknoteException;
 import com.RealCash;
 import com.atm.card_reader.CardIsInvalidException;
 import com.atm.card_reader.CardReader;
@@ -115,19 +114,21 @@ public class ATM implements ATMInterface {
 
     private void transfer() {
         CustomerConsole.displayMessage("Start transfer transaction");
-        CustomerConsole.displayMessage("Choose account what you want to transfer from");
+        CustomerConsole.displayMessage("Choose account you want to transfer from");
         try {
             String fromAccount = getAccountByAccountNumber();
             CustomerConsole.displayMessage("Enter an account number where you want to transfer");
             String toAccount = CustomerConsole.askAccountNumber();
+            String toAccountOwnerName = backendConnection.getToAccountOwnerName(ATM_ID, toAccount);
+            CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
             CustomerConsole.displayMessage("Enter amount which you want to transfer");
             BigDecimal amountForTransfer = CustomerConsole.askAmountForTransfer();
-            backendConnection.transfer(fromAccount, toAccount, amountForTransfer.toString());
+            backendConnection.transfer(ATM_ID, fromAccount, toAccount, amountForTransfer.toString());
             CustomerConsole.displayMessage("Transfer performed successful");
             accounts = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
             CustomerConsole.displayAccounts(accounts);
         } catch (Exception ex) {
-            CustomerConsole.displayMessage("Something went wrong, CustomerID has not found");
+            CustomerConsole.displayMessage("Something went wrong");
         }
 
     }
@@ -143,7 +144,7 @@ public class ATM implements ATMInterface {
     }
 
     private String getAccountByAccountNumber() throws Exception{
-        accounts = backendConnection.getAccountsByCustomerID(currentCustomer.getCustomerID(), true);
+        accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
         currentCustomer.setAccounts(accounts);
         CustomerConsole.displayAccounts(accounts);
         int accountNumberIndex = CustomerConsole.chooseAccountIndex(accounts.size());
@@ -155,28 +156,27 @@ public class ATM implements ATMInterface {
     protected void withdraw() {
         CustomerConsole.displayMessage("Start withdraw transaction");
         try {
-            CustomerConsole.displayMessage("Choose account what you want to perform withdraw from");
+            CustomerConsole.displayMessage("Choose account you want to perform withdraw from");
             String account = getAccountByAccountNumber();
             BigDecimal balance = accounts.get(account);
             double amount = CustomerConsole.askAmount();
             if (balance.compareTo(BigDecimal.valueOf(amount)) >= 0) {
                 try {
                     cashDispenser.dispenseCash(amount);
-                    backendConnection.withdraw(account, BigDecimal.valueOf(amount));
+                    backendConnection.withdraw(ATM_ID, account, BigDecimal.valueOf(amount));
                     CustomerConsole.displayMessage("Take your cash: " + amount);
                 } catch (CashNotEnoughException exception) {
                     CustomerConsole.displayMessage(exception.getMessage());
-                    CustomerConsole.displayMessage("YOU ARE A POOR-MAN");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    CustomerConsole.displayMessage("Something went wrong during transaction");
+                    CustomerConsole.displayMessage("Something went wrong");
                 }
             } else {
                 CustomerConsole.displayMessage("YOU ARE A POOR-MAN");
             }
             CustomerConsole.displayMessage("Finish withdraw transaction");
         } catch (Exception e) {
-            CustomerConsole.displayMessage("Something went wrong, CustomerID has not found");
+            CustomerConsole.displayMessage("Something went wrong");
         }
 
     }
@@ -202,15 +202,15 @@ public class ATM implements ATMInterface {
             }
             if (wholeDeposit != 0.0) {
                 try {
-                    backendConnection.deposit(account, new BigDecimal(wholeDeposit));
+                    backendConnection.deposit(ATM_ID, account, new BigDecimal(wholeDeposit));
                     CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
                 } catch (Exception e) {
-                    CustomerConsole.displayMessage("Something went wrong during deposit");
+                    CustomerConsole.displayMessage("Something went wrong");
                 }
             }
             CustomerConsole.displayMessage("Finish deposit transaction");
         } catch (Exception e) {
-            CustomerConsole.displayMessage("Something went wrong, CustomerID has not found");
+            CustomerConsole.displayMessage("Something went wrong");
         }
     }
 
@@ -219,7 +219,8 @@ public class ATM implements ATMInterface {
         String newPIN;
         try {
             newPIN = CustomerConsole.askPIN();
-            backendConnection.changePIN(cardReader.getCard().getCardNumber(), newPIN);
+            backendConnection.changePIN(ATM_ID, cardReader.getCard().getCardNumber(), newPIN);
+            CustomerConsole.displayMessage("PIN has changed successfully");
         } catch (IncorrectPinException e) {
             CustomerConsole.displayMessage(e.getMessage());
         }
