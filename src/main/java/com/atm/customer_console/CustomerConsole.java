@@ -1,8 +1,8 @@
 package com.atm.customer_console;
 
-import com.InvalidBanknoteException;
-import com.atm.CancelException;
-import com.backend_connection.IncorrectPinException;
+import com.utils.exceptions.InvalidBanknoteException;
+import com.utils.exceptions.CancelException;
+import com.utils.exceptions.IncorrectPinException;
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
 
@@ -28,8 +28,8 @@ public interface CustomerConsole {
             attempts_count++;
             try {
                 //for debugging use code below
-                //pin = console.nextLine();
-                pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
+                pin = console.nextLine();
+                //pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
                 if (!pin.matches("^[0-9]+$")) throw new IncorrectPinException("Something went wrong");
                 break;
             } catch (IncorrectPinException exception) {

@@ -1,7 +1,7 @@
 package com.atm.cash_dispenser;
 
 import com.RealCash;
-import com.atm.CashNotEnoughException;
+import com.utils.exceptions.CashNotEnoughException;
 
 public interface CashDispenserInterface {
 

@@ -1,4 +1,4 @@
-package com.atm;
+package com.utils.exceptions;
 
 public class CashNotEnoughException extends Exception {
 

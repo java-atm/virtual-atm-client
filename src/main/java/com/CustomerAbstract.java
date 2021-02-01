@@ -1,13 +1,11 @@
 package com;
 
-import com.accounts.Account;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class CustomerAbstract implements CustomerInterface{
+public abstract class CustomerAbstract {
     private final String CUSTOMER_ID;
     private ArrayList<String> accounts;
     private String phoneNumber;
@@ -69,14 +67,6 @@ public abstract class CustomerAbstract implements CustomerInterface{
 
     public void setSurname(String surname) {
         this.surname = surname;
-    }
-    
-//    public void addAccount(Account newAccount) {
-//        accounts.add(newAccount);
-//    }
-
-    public void removeAccount(Account account) {
-        accounts.remove(account);
     }
 
     public String getAccountByAccountNumber(int accountNumberIndex) {
