@@ -27,8 +27,9 @@ public interface CustomerConsole {
             displayDialogMessage("Enter PIN: ");
             attempts_count++;
             try {
-                pin = console.nextLine();
-                //pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
+                //for debugging use code below
+                //pin = console.nextLine();
+                pin = String.valueOf(pinReader.readPassword("Please enter your PIN: "));
                 if (!pin.matches("^[0-9]+$")) throw new IncorrectPinException("Something went wrong");
                 break;
             } catch (IncorrectPinException exception) {
