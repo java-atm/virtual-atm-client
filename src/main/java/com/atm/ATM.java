@@ -162,17 +162,21 @@ public class ATM implements ATMInterface {
             LOGGER.info("Transfer performed successful");
             CustomerConsole.displayAccounts(accounts);
         } catch (Exception ex) {
-            CustomerConsole.displayMessage("Something went wrong");
+            LOGGER.error("Transfer transaction is failed");
+            CustomerConsole.displayMessage(ex.getMessage());
         }
 
     }
 
     protected void checkBalance() {
+        LOGGER.info("Start check balances");
         try {
             accounts = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
             CustomerConsole.displayAccounts(accounts);
+            LOGGER.info("Check balances performed successful");
         } catch (Exception ex) {
-            CustomerConsole.displayMessage("Connection lost");
+            LOGGER.info("Check balance transaction is failed");
+            CustomerConsole.displayMessage(ex.getMessage());
         }
 
     }
@@ -190,77 +194,101 @@ public class ATM implements ATMInterface {
     }
 
     protected void withdraw() {
+        LOGGER.info("Start withdraw transaction");
         CustomerConsole.displayMessage("Start withdraw transaction");
         try {
             CustomerConsole.displayMessage("Choose account you want to perform withdraw from");
             String account = getAccountByAccountNumber();
             BigDecimal balance = accounts.get(account);
+            LOGGER.info("Account: {}, balance: {}", account, balance);
             double amount = CustomerConsole.askAmount();
             if (balance.compareTo(BigDecimal.valueOf(amount)) >= 0) {
                 try {
+                    LOGGER.info("Dispense cash from ATM");
                     cashDispenser.dispenseCash(amount);
                     backendConnection.withdraw(ATM_ID, account, BigDecimal.valueOf(amount));
                     CustomerConsole.displayMessage("Take your cash: " + amount);
                 } catch (CashNotEnoughException exception) {
+                    LOGGER.error("ATM DOES NOT HAVE ENOUGH MONEY");
                     CustomerConsole.displayMessage(exception.getMessage());
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    CustomerConsole.displayMessage("Something went wrong");
+                    LOGGER.error("WITHDRAW TRANSACTION IS FAILED");
+                    CustomerConsole.displayMessage(e.getMessage());
                 }
+                LOGGER.info("Withdraw transaction performed successful");
             } else {
+                LOGGER.info("Customer does not have enough money");
                 CustomerConsole.displayMessage("YOU ARE A POOR-MAN");
             }
             CustomerConsole.displayMessage("Finish withdraw transaction");
+
         } catch (Exception e) {
-            CustomerConsole.displayMessage("Something went wrong");
+            LOGGER.error("WITHDRAW TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ");
+            CustomerConsole.displayMessage(e.getMessage());
         }
 
     }
 
     protected void deposit() {
+        LOGGER.info("Start deposit transaction");
         CustomerConsole.displayMessage("Start deposit transaction");
         try {
             CustomerConsole.displayMessage("Choose account where you want to perform deposit");
             String account = getAccountByAccountNumber();
+            LOGGER.info("Account: {}", account);
             double banknote;
             double wholeDeposit = 0.0;
             while (true) {
                 try {
+                    LOGGER.info("Start accepting cash");
                     banknote = CustomerConsole.acceptCash();
+                    LOGGER.info("Adding banknote to ATM");
                     cashDispenser.addCash(banknote);
                     wholeDeposit += banknote;
                     CustomerConsole.displayMessage("Total: " + wholeDeposit);
+                    LOGGER.info("Whole deposit: {}", wholeDeposit);
                     CustomerConsole.displayMessage("Continue operation? Yes(any), No(n)");
                     CustomerConsole.continueOperation();
                 } catch (CancelException exception) {
+                    LOGGER.info("Customer ended to insert banknotes");
                     break;
                 }
             }
             if (wholeDeposit != 0.0) {
                 try {
+                    LOGGER.info("Preparing for performing deposit transaction when customer has already inserted all his money to ATM, but we won't going to performing deposit, because almost all people on the Earth is SHIT");
                     backendConnection.deposit(ATM_ID, account, new BigDecimal(wholeDeposit));
+                    LOGGER.info("Deposit is performed successful");
                     CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
                 } catch (Exception e) {
-                    CustomerConsole.displayMessage("Something went wrong");
+                    LOGGER.error("DEPOSIT TRANSACTION IS FAILED");
+                    CustomerConsole.displayMessage(e.getMessage());
                 }
             }
             CustomerConsole.displayMessage("Finish deposit transaction");
         } catch (Exception e) {
-            CustomerConsole.displayMessage("Something went wrong");
+            LOGGER.error("DEPOSIT TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ");
+            CustomerConsole.displayMessage(e.getMessage());
         }
     }
 
     protected void changePIN() {
+        LOGGER.info("Start change PIN transaction");
         CustomerConsole.displayMessage("Enter your new PIN");
         String newPIN;
         try {
             newPIN = CustomerConsole.askPIN();
+            LOGGER.info("Change PIN transaction. New PIN is entered");
             backendConnection.changePIN(ATM_ID, cardReader.getCard().getCardNumber(), newPIN);
+            LOGGER.info("PIN has changed successfully");
             CustomerConsole.displayMessage("PIN has changed successfully");
         } catch (IncorrectPinException e) {
+            LOGGER.error("INVALID PIN WAS INSERTED");
+            LOGGER.error("CHANGE PIN TRANSACTION IS FAILED");
             CustomerConsole.displayMessage(e.getMessage());
         } catch (Exception ex) {
-
+            LOGGER.error("CHANGE PIN TRANSACTION IS FAILED");
+            CustomerConsole.displayMessage(ex.getMessage());
         }
 
     }

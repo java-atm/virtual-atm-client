@@ -3,4 +3,4 @@ out
 src/main/java/Main.java
 test
 target
-atm_client_logs.log
+logs

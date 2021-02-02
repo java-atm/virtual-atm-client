@@ -1,43 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="info" type="stdout">
+<Configuration status="info">
     <Appenders>
+        <Console name="console-log" target="SYSTEM_OUT">
+            <PatternLayout pattern=""/>
+        </Console>
         <RollingFile name="atm_logs"
-                     filename="atm_client_logs.log"
+                     filename="logs/atm_client_logs.log"
                      filePattern="atm_client_logs-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="{%-5level} %d{dd.MM.yyyy hh:mm:ss.SSS} [%t] %logger %msg%n%throwable"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="1000 kB"/>
             </Policies>
         </RollingFile>
+
+        <RollingFile name="atm_error_logs"
+                     filename="logs/atm_err_logs.log"
+                     filePattern="atm_error_logs-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="{%-5level} %d{dd.MM.yyyy hh:mm:ss} [%t] %logger %msg%n%throwable"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1000 kB"/>
+            </Policies>
+        </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="info" additivity="true">
-            <AppenderRef ref="atm_logs"/>
+        <Logger name="com" level="info" additivity="true">
+            <AppenderRef ref="atm_error_logs" level="error"/>
+            <AppenderRef ref="atm_logs" level="info"/>
+        </Logger>
+        <Root level="fatal" additivity="false">
+            <AppenderRef ref="console-log"/>
         </Root>
     </Loggers>
 </Configuration>
-
-        <!--<?xml version="1.0" encoding="UTF-8"?>-->
-        <!--<Configuration status="WARN">-->
-        <!--    <Appenders>-->
-
-        <!--        <RollingFile name="LogToRollingFile" fileName="/home/genilot/Desktop/All Projects/Java Projects/Log_test/app_info.log"-->
-        <!--                     filePattern="app_info-%d{yyyy-MM-dd}.log">-->
-        <!--            <PatternLayout>-->
-        <!--                <pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</pattern>-->
-        <!--            </PatternLayout>-->
-        <!--            <Policies>-->
-        <!--                <TimeBasedTriggeringPolicy interval="1" modulate="true" />-->
-        <!--                <SizeBasedTriggeringPolicy size="10 MB"/>-->
-        <!--            </Policies>-->
-        <!--        </RollingFile>-->
-        <!--    </Appenders>-->
-        <!--    <Loggers>-->
-        <!--        <Logger name="com" level="debug" additivity="false">-->
-        <!--            <AppenderRef ref="LogToRollingFile"/>-->
-        <!--        </Logger>-->
-        <!--        <Root level="error">-->
-        <!--            <AppenderRef ref="LogToRollingFile"/>-->
-        <!--        </Root>-->
-        <!--    </Loggers>-->
-        <!--</Configuration>-->
