@@ -1,10 +1,14 @@
 package com.atm.cash_dispenser;
 
 import com.RealCash;
-import com.utils.exceptions.CashNotEnoughException;
 import com.utils.enums.Banknote;
+import com.utils.exceptions.CashNotEnoughException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CashDispenser implements CashDispenserInterface{
+
+    private static final Logger LOGGER = LogManager.getLogger(CashDispenser.class);
 
     private RealCash cash;
 
@@ -31,6 +35,7 @@ public class CashDispenser implements CashDispenserInterface{
 
     @Override
     public void dispenseCash(Double amount) throws CashNotEnoughException {
+        LOGGER.info("Start dispenseCash. Amount: {}", amount);
         RealCash tempCash = cash.getClone();
         Banknote[] banknotes = Banknote.values();
         for (Banknote banknote : banknotes){
@@ -47,8 +52,10 @@ public class CashDispenser implements CashDispenserInterface{
 
         }
         if (amount != 0) {
+            LOGGER.warn("Cash not enough in ATM");
             throw new CashNotEnoughException("Cash not enough. Please call maintenance.");
         }
+        LOGGER.info("Cash is dispensed");
         this.cash = tempCash;
     }
 

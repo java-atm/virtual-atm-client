@@ -18,7 +18,7 @@ public interface BackendConnectionInterface {
 
     void transfer(String ATM_ID, String fromAccount, String toAccount, String amountForTransfer) throws Exception;
 
-    String getToAccountOwnerName(String ATM_ID, String toAccount) throws Exception;
+    String getAccountOwnerName(String ATM_ID, String toAccount) throws Exception;
 
     HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws Exception;
 }

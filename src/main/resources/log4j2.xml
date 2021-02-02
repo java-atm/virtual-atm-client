@@ -4,7 +4,7 @@
         <RollingFile name="atm_logs"
                      filename="atm_client_logs.log"
                      filePattern="atm_client_logs-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="%d{dd.MM.yyyy hh:mm:ss.SSS} [%t] %logger {%-5level} %msg%n%throwable"/>
+            <PatternLayout pattern="{%-5level} %d{dd.MM.yyyy hh:mm:ss.SSS} [%t] %logger %msg%n%throwable"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="1000 kB"/>
             </Policies>

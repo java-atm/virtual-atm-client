@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 public class BackendConnection implements BackendConnectionInterface {
 
-    public static final Logger LOGGER = LogManager.getLogger(BackendConnection.class);
+    private static final Logger LOGGER = LogManager.getLogger(BackendConnection.class);
 
     private final static String CURRENCY = "AMD";
     private final String somethingWentWrongMsg = "Something went wrong";
@@ -93,7 +93,7 @@ public class BackendConnection implements BackendConnectionInterface {
         connection(query, jsonObject);
     }
 
-    public String getToAccountOwnerName(String ATM_ID, String toAccount) throws Exception {
+    public String getAccountOwnerName(String ATM_ID, String toAccount) throws Exception {
         LOGGER.info("Start performing to get account owner name");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("atm_id", ATM_ID);
@@ -103,7 +103,7 @@ public class BackendConnection implements BackendConnectionInterface {
     }
 
     public HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws Exception {
-        LOGGER.info("Start performing to get accounts by ID");
+        LOGGER.info("Start performing to get accounts by customer ID");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("atm_id", ATM_ID);
         jsonObject.put("customerID", customerID);

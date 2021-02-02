@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class ATM implements ATMInterface {
 
-    public static final Logger LOGGER = LogManager.getLogger(ATM.class);
+    private static final Logger LOGGER = LogManager.getLogger(ATM.class);
 
     private final String ATM_ID;
     private final CashDispenser cashDispenser;
@@ -52,7 +52,7 @@ public class ATM implements ATMInterface {
             try {
                 readCard();
                 pin = CustomerConsole.askPIN();
-                LOGGER.info("PIN : {} \nCard number : {}", pin, cardReader.getCard().getCardNumber());
+                LOGGER.info("Card number : {}", cardReader.getCard().getCardNumber());
                 String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin);
                 LOGGER.info("Customer ID: {}", customerID);
                 currentCustomer = new Customer(customerID,
@@ -69,8 +69,24 @@ public class ATM implements ATMInterface {
             } finally {
                 ejectCard();
                 CustomerConsole.displayMessage("Card is ejecting");
+                LOGGER.info("Card is ejected");
                 CustomerConsole.displayMessage("Please take your card");
+                checkCustomerInfoIsDeleted();
             }
+        }
+    }
+
+    private void checkCustomerInfoIsDeleted() {
+        try {
+            cardReader.getCard();
+            LOGGER.warn("CARD INFO IS NOT DELETED: {}", cardReader.getCard().getCardNumber());
+        } catch (NullPointerException ex) {
+            LOGGER.info("Card info is deleted");
+        }
+        if (currentCustomer != null) {
+            LOGGER.warn("CUSTOMER INFO IS NOT DELETED: {}", currentCustomer.getCustomerID());
+        } else {
+            LOGGER.warn("Customer info is deleted");
         }
     }
 
@@ -133,7 +149,7 @@ public class ATM implements ATMInterface {
             String fromAccount = getAccountByAccountNumber();
             CustomerConsole.displayMessage("Enter an account number where you want to transfer");
             String toAccount = CustomerConsole.askAccountNumber();
-            String toAccountOwnerName = backendConnection.getToAccountOwnerName(ATM_ID, toAccount);
+            String toAccountOwnerName = backendConnection.getAccountOwnerName(ATM_ID, toAccount);
             CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
             CustomerConsole.displayMessage("Enter amount which you want to transfer");
             BigDecimal amountForTransfer = CustomerConsole.askAmountForTransfer();
