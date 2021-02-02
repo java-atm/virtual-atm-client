@@ -143,6 +143,7 @@ public class ATM implements ATMInterface {
     }
 
     private void transfer() {
+        LOGGER.info("Chosen transaction is transfer");
         CustomerConsole.displayMessage("Start transfer transaction");
         CustomerConsole.displayMessage("Choose account you want to transfer from");
         try {
@@ -150,12 +151,15 @@ public class ATM implements ATMInterface {
             CustomerConsole.displayMessage("Enter an account number where you want to transfer");
             String toAccount = CustomerConsole.askAccountNumber();
             String toAccountOwnerName = backendConnection.getAccountOwnerName(ATM_ID, toAccount);
+            LOGGER.info("To account owner name: {}", toAccountOwnerName);
             CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
             CustomerConsole.displayMessage("Enter amount which you want to transfer");
             BigDecimal amountForTransfer = CustomerConsole.askAmountForTransfer();
+            LOGGER.info("Amount for transfer: {}", amountForTransfer);
             backendConnection.transfer(ATM_ID, fromAccount, toAccount, amountForTransfer.toString());
             CustomerConsole.displayMessage("Transfer performed successful");
-            accounts = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
+            accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
+            LOGGER.info("Transfer performed successful");
             CustomerConsole.displayAccounts(accounts);
         } catch (Exception ex) {
             CustomerConsole.displayMessage("Something went wrong");
@@ -174,11 +178,13 @@ public class ATM implements ATMInterface {
     }
 
     private String getAccountByAccountNumber() throws Exception {
+        LOGGER.info("Get account by account number");
         accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
         currentCustomer.setAccounts(accounts);
         CustomerConsole.displayAccounts(accounts);
         int accountNumberIndex = CustomerConsole.chooseAccountIndex(accounts.size());
         String account = currentCustomer.getAccountByAccountNumber(accountNumberIndex);
+        LOGGER.info("Chosen account: {}", account);
         CustomerConsole.displayMessage("This is your chosen account: " + account);
         return account;
     }
