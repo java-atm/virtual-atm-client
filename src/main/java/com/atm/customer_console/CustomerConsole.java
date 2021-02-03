@@ -2,9 +2,9 @@ package com.atm.customer_console;
 
 import com.utils.enums.Action;
 import com.utils.enums.Banknote;
-import com.utils.exceptions.CancelException;
-import com.utils.exceptions.IncorrectPinException;
-import com.utils.exceptions.InvalidBanknoteException;
+import com.utils.exceptions.atm_exceptions.CancelException;
+import com.utils.exceptions.atm_exceptions.IncorrectPinException;
+import com.utils.exceptions.atm_exceptions.InvalidBanknoteException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,9 +42,9 @@ public interface CustomerConsole {
                 break;
             } catch (IncorrectPinException exception) {
                 displayMessage(exception.getMessage());
-                LOGGER.warn("{}, Invalid PIN inserted", exception.getMessage());
+                LOGGER.warn("'{}', Invalid PIN inserted", exception.getMessage());
                 if (attempts_count == MAX_ATTEMPTS) {
-                    LOGGER.error("Number of attempts ended");
+                    LOGGER.error("Number of attempts ended", exception);
                     throw new IncorrectPinException("Number of attempts ended");
                 }
             }
@@ -55,7 +55,7 @@ public interface CustomerConsole {
 
     static void continueOperation() throws CancelException {
         String cancel = console.nextLine();
-        LOGGER.info("Perform another transaction answer: {}", cancel);
+        LOGGER.info("Perform another transaction answer: '{}'", cancel);
         if(cancel.equals("n") || cancel.equals("N") ||
            cancel.equals("no") || cancel.equals("No") ||
            cancel.equals("nO") || cancel.equals("NO") ||
@@ -76,15 +76,15 @@ public interface CustomerConsole {
                 displayMessage("You put in: " + banknote);
                 endAcceptCash = true;
                 console.nextLine();
-            } catch (InputMismatchException ex) {
+            } catch (InputMismatchException exception) {
                 LOGGER.warn("WRONG INPUT OF BANKNOTE");
                 displayMessage("Invalid banknote, take that");
             } catch (InvalidBanknoteException exception) {
-                LOGGER.warn("INVALID BANKNOTE: {}", banknote);
+                LOGGER.warn("INVALID BANKNOTE: '{}'", banknote);
                 displayMessage(exception.getMessage());
             }
         }
-        LOGGER.info("Banknote is accepted: {}", banknote);
+        LOGGER.info("Banknote is accepted: '{}'", banknote);
         return banknote;
     }
 
@@ -119,7 +119,7 @@ public interface CustomerConsole {
                 if (amount % Banknote.MINIMAL_BANKNOTE != 0) throw new InvalidBanknoteException("");
                 break;
             } catch (Exception ex) {
-                LOGGER.warn("INVALID AMOUNT: {}", Double.toString(amount));
+                LOGGER.warn("INVALID AMOUNT: '{}'", Double.toString(amount));
                 displayDialogMessage("Please, enter right amount: ");
             } finally {
                 console.nextLine();
@@ -138,7 +138,7 @@ public interface CustomerConsole {
                 amount = console.nextBigDecimal();
                 break;
             } catch (InputMismatchException exception) {
-                LOGGER.warn("INVALID AMOUNT: {}", amount.toString());
+                LOGGER.warn("INVALID AMOUNT: '{}'", amount.toString());
                 displayDialogMessage("Please, enter right amount: ");
             } finally {
                 console.nextLine();
@@ -155,10 +155,10 @@ public interface CustomerConsole {
         while (true){
             accountNumber = console.nextLine();
             if(checkAccountNumberIsValid(accountNumber)) {
-                LOGGER.info("Account number is read: {}", accountNumber);
+                LOGGER.info("Account number is read: '{}'", accountNumber);
                 return accountNumber;
             }
-            LOGGER.warn("INSERTED ACCOUNT NUMBER NOT VALID: {}", accountNumber);
+            LOGGER.warn("INSERTED ACCOUNT NUMBER NOT VALID: '{}'", accountNumber);
             displayMessage("Inserted account number is not valid");
             displayMessage("Try again");
             displayDialogMessage("Please, insert account number: ");
@@ -187,7 +187,7 @@ public interface CustomerConsole {
                 console.nextLine();
             }
         }
-        LOGGER.info("Action is chosen: {}", Action.values()[action]);
+        LOGGER.info("Action is chosen: '{}'", Action.values()[action]);
         return Action.values()[action];
     }
 

@@ -57,7 +57,12 @@ public class RealCash extends CashAbstract {
     @Override
     public void addAmount(double amount) {
         setAmount(getAmount() + amount);
+        int numberOfBanknotes = banknotes.get(amount);
         banknotes.put(amount, banknotes.get(amount) + 1);
+        if (numberOfBanknotes == banknotes.get(amount)) {
+            LOGGER.fatal("AMOUNT IS NOT ADDED");
+            throw new RuntimeException("AMOUNT IS NOT ADDED");
+        }
     }
 
     @Override
@@ -67,7 +72,7 @@ public class RealCash extends CashAbstract {
         banknotes.put(amount, banknotes.get(amount) - 1);
         if (numberOfBanknotes == banknotes.get(amount)) {
             LOGGER.fatal("AMOUNT IS NOT SUBTRACTED");
-            throw new RuntimeException();
+            throw new RuntimeException("AMOUNT IS NOT SUBTRACTED");
         }
     }
 }

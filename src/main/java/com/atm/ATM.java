@@ -7,16 +7,15 @@ import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
 import com.backend_connection.BackendConnection;
 import com.utils.enums.Action;
-import com.utils.exceptions.CancelException;
-import com.utils.exceptions.CardIsInvalidException;
-import com.utils.exceptions.CashNotEnoughException;
-import com.utils.exceptions.IncorrectPinException;
+import com.utils.exceptions.BaseException;
+import com.utils.exceptions.atm_exceptions.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 public class ATM implements ATMInterface {
 
@@ -52,17 +51,27 @@ public class ATM implements ATMInterface {
             try {
                 readCard();
                 pin = CustomerConsole.askPIN();
-                LOGGER.info("Card number : {}", cardReader.getCard().getCardNumber());
+                LOGGER.info("Card number: '{}'", cardReader.getCard().getCardNumber());
                 String customerID = backendConnection.authenticate(ATM_ID, cardReader.getCard(), pin);
-                LOGGER.info("Customer ID: {}", customerID);
+                LOGGER.info("Customer ID: '{}'", customerID);
                 currentCustomer = new Customer(customerID,
                                                cardReader.getCard().getName(),
                                                cardReader.getCard().getSurname());
                 serveCustomer();
+            } catch (IllegalStateException | NoSuchElementException exception) {
+                LOGGER.error("ATM IS PREPARING FOR POWERING OFF");
+                LOGGER.error("MESSAGE FOR USER");
+                /*
+                *@TODO Write function, which processing the latest action of the current customer
+                */
+                CustomerConsole.displayMessage("Something went wrong");
+                CustomerConsole.displayMessage("Please accept our apologies");
+                CustomerConsole.displayMessage("The last transaction is not successful");
+                CustomerConsole.displayMessage("");
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;
                 CustomerConsole.displayMessage(exception.getMessage());
-            } catch (Exception exception) {
+            } catch (BaseException exception) {
                 CustomerConsole.displayMessage(exception.getMessage());
                 LOGGER.error(exception);
                 //CustomerConsole.displayMessage(Arrays.toString(exception.getStackTrace()));
@@ -76,15 +85,17 @@ public class ATM implements ATMInterface {
         }
     }
 
+
+
     private void checkCustomerInfoIsDeleted() {
         try {
             cardReader.getCard();
-            LOGGER.warn("CARD INFO IS NOT DELETED: {}", cardReader.getCard().getCardNumber());
+            LOGGER.warn("CARD INFO IS NOT DELETED: '{}'", cardReader.getCard().getCardNumber());
         } catch (NullPointerException ex) {
             LOGGER.info("Card info is deleted");
         }
         if (currentCustomer != null) {
-            LOGGER.warn("CUSTOMER INFO IS NOT DELETED: {}", currentCustomer.getCustomerID());
+            LOGGER.warn("CUSTOMER INFO IS NOT DELETED: '{}'", currentCustomer.getCustomerID());
         } else {
             LOGGER.warn("Customer info is deleted");
         }
@@ -151,11 +162,11 @@ public class ATM implements ATMInterface {
             CustomerConsole.displayMessage("Enter an account number where you want to transfer");
             String toAccount = CustomerConsole.askAccountNumber();
             String toAccountOwnerName = backendConnection.getAccountOwnerName(ATM_ID, toAccount);
-            LOGGER.info("To account owner name: {}", toAccountOwnerName);
+            LOGGER.info("To account owner name: '{}'", toAccountOwnerName);
             CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
             CustomerConsole.displayMessage("Enter amount which you want to transfer");
             BigDecimal amountForTransfer = CustomerConsole.askAmountForTransfer();
-            LOGGER.info("Amount for transfer: {}", amountForTransfer);
+            LOGGER.info("Amount for transfer: '{}'", amountForTransfer);
             backendConnection.transfer(ATM_ID, fromAccount, toAccount, amountForTransfer.toString());
             CustomerConsole.displayMessage("Transfer performed successful");
             accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
@@ -188,7 +199,7 @@ public class ATM implements ATMInterface {
         CustomerConsole.displayAccounts(accounts);
         int accountNumberIndex = CustomerConsole.chooseAccountIndex(accounts.size());
         String account = currentCustomer.getAccountByAccountNumber(accountNumberIndex);
-        LOGGER.info("Chosen account: {}", account);
+        LOGGER.info("Chosen account: '{}'", account);
         CustomerConsole.displayMessage("This is your chosen account: " + account);
         return account;
     }
@@ -200,7 +211,7 @@ public class ATM implements ATMInterface {
             CustomerConsole.displayMessage("Choose account you want to perform withdraw from");
             String account = getAccountByAccountNumber();
             BigDecimal balance = accounts.get(account);
-            LOGGER.info("Account: {}, balance: {}", account, balance);
+            LOGGER.info("Account: '{}', balance: '{}'", account, balance);
             double amount = CustomerConsole.askAmount();
             if (balance.compareTo(BigDecimal.valueOf(amount)) >= 0) {
                 try {
@@ -235,7 +246,7 @@ public class ATM implements ATMInterface {
         try {
             CustomerConsole.displayMessage("Choose account where you want to perform deposit");
             String account = getAccountByAccountNumber();
-            LOGGER.info("Account: {}", account);
+            LOGGER.info("Account: '{}'", account);
             double banknote;
             double wholeDeposit = 0.0;
             while (true) {
@@ -246,7 +257,7 @@ public class ATM implements ATMInterface {
                     cashDispenser.addCash(banknote);
                     wholeDeposit += banknote;
                     CustomerConsole.displayMessage("Total: " + wholeDeposit);
-                    LOGGER.info("Whole deposit: {}", wholeDeposit);
+                    LOGGER.info("Whole deposit: '{}'", wholeDeposit);
                     CustomerConsole.displayMessage("Continue operation? Yes(any), No(n)");
                     CustomerConsole.continueOperation();
                 } catch (CancelException exception) {
