@@ -10,6 +10,7 @@ import com.utils.enums.Action;
 import com.utils.exceptions.BaseException;
 import com.utils.exceptions.atm_exceptions.*;
 
+import com.utils.exceptions.transaction_exceptions.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,6 +30,9 @@ public class ATM implements ATMInterface {
     private final BackendConnection backendConnection;
     private HashMap<String, BigDecimal> accounts;
     //private final Transaction currentTransaction;
+
+    private Action lastSelectedAction;
+    double wholeDeposit = 0.0;
 
     public ATM(final String ATM_ID, RealCash initialCash) {
         this.ATM_ID = ATM_ID;
@@ -58,23 +62,17 @@ public class ATM implements ATMInterface {
                                                cardReader.getCard().getName(),
                                                cardReader.getCard().getSurname());
                 serveCustomer();
+//                First catch is being caused if the customer entered CTRL+D
             } catch (IllegalStateException | NoSuchElementException exception) {
-                LOGGER.error("ATM IS PREPARING FOR POWERING OFF");
-                LOGGER.error("MESSAGE FOR USER");
-                /*
-                *@TODO Write function, which processing the latest action of the current customer
-                */
-                CustomerConsole.displayMessage("Something went wrong");
-                CustomerConsole.displayMessage("Please accept our apologies");
-                CustomerConsole.displayMessage("The last transaction is not successful");
-                CustomerConsole.displayMessage("");
+                LOGGER.error("ATM IS PREPARING FOR POWERING OFF", exception);
+                doExtremelyPowerOffATM();
+                break;
             } catch (CancelException exception) {
                 if (exception.getMessage().equals("ATM POWER OFF")) break;
                 CustomerConsole.displayMessage(exception.getMessage());
             } catch (BaseException exception) {
                 CustomerConsole.displayMessage(exception.getMessage());
                 LOGGER.error(exception);
-                //CustomerConsole.displayMessage(Arrays.toString(exception.getStackTrace()));
             } finally {
                 ejectCard();
                 CustomerConsole.displayMessage("Card is ejecting");
@@ -85,7 +83,21 @@ public class ATM implements ATMInterface {
         }
     }
 
+    private void doExtremelyPowerOffATM() {
+        CustomerConsole.displayMessage("Something went wrong");
+        CustomerConsole.displayMessage("The last transaction is not successful");
+        CustomerConsole.displayMessage("Please accept our apologies");
+        if (lastSelectedAction == Action.DEPOSIT && wholeDeposit != 0.0) {
+            CustomerConsole.displayMessage("Take your cash: " + wholeDeposit);
+            try {
+                cashDispenser.dispenseCash(wholeDeposit);
+                LOGGER.info("Customer took his deposit before POWER OFF: '{}'", wholeDeposit);
+                wholeDeposit = 0.0;
+            } catch (CashNotEnoughException ignore) {
 
+            }
+        }
+    }
 
     private void checkCustomerInfoIsDeleted() {
         try {
@@ -105,8 +117,8 @@ public class ATM implements ATMInterface {
         LOGGER.info("Start serving customer");
         while(true) {
             CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
-            Action selectedAction = CustomerConsole.chooseAction();
-            performSelectedAction(selectedAction);
+            lastSelectedAction = CustomerConsole.chooseAction();
+            performSelectedAction(lastSelectedAction);
             try {
                 LOGGER.info("Dialog to choose another transaction");
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
@@ -172,8 +184,8 @@ public class ATM implements ATMInterface {
             accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
             LOGGER.info("Transfer performed successful");
             CustomerConsole.displayAccounts(accounts);
-        } catch (Exception ex) {
-            LOGGER.error("Transfer transaction is failed");
+        } catch (AccountsByCustomerIDException | AccountOwnerNameException | TransferTransactionException ex) {
+            LOGGER.error("Transfer transaction is failed", ex);
             CustomerConsole.displayMessage(ex.getMessage());
         }
 
@@ -185,14 +197,14 @@ public class ATM implements ATMInterface {
             accounts = backendConnection.checkBalance(ATM_ID, currentCustomer.getCustomerID());
             CustomerConsole.displayAccounts(accounts);
             LOGGER.info("Check balances performed successful");
-        } catch (Exception ex) {
-            LOGGER.info("Check balance transaction is failed");
+        } catch (CheckBalanceTransactionException ex) {
+            LOGGER.error("Check balance transaction is failed", ex);
             CustomerConsole.displayMessage(ex.getMessage());
         }
 
     }
 
-    private String getAccountByAccountNumber() throws Exception {
+    private String getAccountByAccountNumber() throws AccountsByCustomerIDException {
         LOGGER.info("Get account by account number");
         accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
         currentCustomer.setAccounts(accounts);
@@ -233,9 +245,9 @@ public class ATM implements ATMInterface {
             }
             CustomerConsole.displayMessage("Finish withdraw transaction");
 
-        } catch (Exception e) {
-            LOGGER.error("WITHDRAW TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ");
-            CustomerConsole.displayMessage(e.getMessage());
+        } catch (AccountsByCustomerIDException ex) {
+            LOGGER.error("WITHDRAW TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ", ex);
+            CustomerConsole.displayMessage(ex.getMessage());
         }
 
     }
@@ -248,7 +260,7 @@ public class ATM implements ATMInterface {
             String account = getAccountByAccountNumber();
             LOGGER.info("Account: '{}'", account);
             double banknote;
-            double wholeDeposit = 0.0;
+            wholeDeposit = 0.0;
             while (true) {
                 try {
                     LOGGER.info("Start accepting cash");
@@ -267,7 +279,7 @@ public class ATM implements ATMInterface {
             }
             if (wholeDeposit != 0.0) {
                 try {
-                    LOGGER.info("Preparing for performing deposit transaction when customer has already inserted all his money to ATM, but we won't going to performing deposit, because almost all people on the Earth is SHIT");
+                    LOGGER.info("Preparing for adding deposit to chosen account: '{}'", account);
                     backendConnection.deposit(ATM_ID, account, new BigDecimal(wholeDeposit));
                     LOGGER.info("Deposit is performed successful");
                     CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
@@ -275,11 +287,12 @@ public class ATM implements ATMInterface {
                     LOGGER.error("DEPOSIT TRANSACTION IS FAILED");
                     CustomerConsole.displayMessage(e.getMessage());
                 }
+                wholeDeposit = 0.0;
             }
             CustomerConsole.displayMessage("Finish deposit transaction");
-        } catch (Exception e) {
-            LOGGER.error("DEPOSIT TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ");
-            CustomerConsole.displayMessage(e.getMessage());
+        } catch (AccountsByCustomerIDException ex) {
+            LOGGER.error("DEPOSIT TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ", ex);
+            CustomerConsole.displayMessage(ex.getMessage());
         }
     }
 
@@ -297,8 +310,8 @@ public class ATM implements ATMInterface {
             LOGGER.error("INVALID PIN WAS INSERTED");
             LOGGER.error("CHANGE PIN TRANSACTION IS FAILED");
             CustomerConsole.displayMessage(e.getMessage());
-        } catch (Exception ex) {
-            LOGGER.error("CHANGE PIN TRANSACTION IS FAILED");
+        } catch (ChangePINTransactionException ex) {
+            LOGGER.error("CHANGE PIN TRANSACTION IS FAILED", ex);
             CustomerConsole.displayMessage(ex.getMessage());
         }
 
@@ -306,7 +319,6 @@ public class ATM implements ATMInterface {
 
     protected void exit() throws CancelException {
         ejectCard();
-        System.out.println("exit");
         throw new CancelException("Have a good day " + "❤️");
     }
 

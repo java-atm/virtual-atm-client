@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedHashMap;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class CardReader implements CardReaderInterface {
@@ -32,14 +31,10 @@ public class CardReader implements CardReaderInterface {
         LinkedHashMap<CardInfo,String> cardIdentifyInfo = new LinkedHashMap<>();
         String info;
         for (CardInfo cardInfo : CardInfo.values()) {
-            try {
-                System.out.print("Insert your " + cardInfo + ": ");
-                info = scanner.nextLine();
-                LOGGER.info("'{}' : '{}'", cardInfo, info);
-                cardIdentifyInfo.put(cardInfo, info);
-            } catch (IllegalStateException | NoSuchElementException ex) {
-                throw new CardIsInvalidException("Pzdecki pzda");
-            }
+            System.out.print("Insert your " + cardInfo + ": ");
+            info = scanner.nextLine();
+            LOGGER.info("'{}' : '{}'", cardInfo, info);
+            cardIdentifyInfo.put(cardInfo, info);
         }
         checkCardIsValid(cardIdentifyInfo);
         LOGGER.info("Card info is read");
