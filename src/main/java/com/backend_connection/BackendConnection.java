@@ -1,151 +1,228 @@
 package com.backend_connection;
 
 import com.Card;
+import com.utils.enums.AccountCurrency;
+import com.utils.exceptions.JsonToMapException;
+import com.utils.exceptions.ReadResponseDataException;
+import com.utils.exceptions.transaction_exceptions.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class BackendConnection implements BackendConnectionInterface {
-    private final static String CURRENCY = "AMD";
 
-    public String authenticate(String ATM_ID, Card card, String pin) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("card_info", card.getIDENTIFICATION_INFO());
-        jsonObject.put("pin", pin);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/auth";
+    private static final Logger LOGGER = LogManager.getLogger(BackendConnection.class);
 
-        return connection(query, jsonObject);
-    }
+    private final static String CURRENCY = AccountCurrency.AMD.getCurrency();
+    private final String somethingWentWrongMsg = "Something went wrong";
+    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/";
 
-    public HashMap<String, BigDecimal> checkBalance(String ATM_ID, String customerID) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("customerID", customerID);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/checkBalance";
-
-        String balancesInJsonString = connection(query, jsonObject);
-        return jsonToMap(balancesInJsonString);
-    }
-
-    public void withdraw(String ATM_ID, String accountNumber, BigDecimal amount) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("accountNumber", accountNumber);
-        jsonObject.put("amount", amount);
-        jsonObject.put("currency", CURRENCY);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/withdraw";
-
+    public String authenticate(String ATM_ID, Card card, String pin) throws AuthenticateException {
         try {
-            connection(query, jsonObject);
-        } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info("Start performing authentication");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("card_info", card.getIDENTIFICATION_INFO());
+            jsonObject.put("pin", pin);
+            String query = BASE_URL + "auth";
+            return connection(query, jsonObject);
+        } catch (ConnectException ex) {
+            LOGGER.error("AUTHENTICATION ERROR");
+            throw new AuthenticateException(ex.getMessage());
         }
     }
 
-
-    public void deposit(String ATM_ID, String accountNumber, BigDecimal amount) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("accountNumber", accountNumber);
-        jsonObject.put("amount", amount);
-        jsonObject.put("currency", CURRENCY);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/deposit";
-
-        connection(query, jsonObject);
-    }
-
-    public void changePIN(String ATM_ID, String cardNumber, String newPIN) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("cardNumber", cardNumber);
-        jsonObject.put("newPin", newPIN);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/changePin";
-
+    public HashMap<String, BigDecimal> checkBalance(String ATM_ID, String customerID) throws CheckBalanceTransactionException {
         try {
+            LOGGER.info("Start performing check balance");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("customerID", customerID);
+            String query = BASE_URL + "checkBalance";
+            String balancesInJsonString = connection(query, jsonObject);
+            return jsonToMap(balancesInJsonString);
+        } catch (ConnectException | JsonToMapException ex) {
+            LOGGER.error("CHECK BALANCE TRANSACTION ERROR");
+            throw new CheckBalanceTransactionException(ex.getMessage());
+        }
+    }
+
+    public void withdraw(String ATM_ID, String accountNumber, BigDecimal amount) throws WithdrawTransactionException {
+        try {
+            LOGGER.info("Start performing withdraw");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("accountNumber", accountNumber);
+            jsonObject.put("amount", amount);
+            jsonObject.put("currency", CURRENCY);
+            String query = BASE_URL + "withdraw";
             connection(query, jsonObject);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ConnectException ex) {
+            LOGGER.error("WITHDRAW TRANSACTION ERROR");
+            throw new WithdrawTransactionException(ex.getMessage());
         }
     }
 
-    public void transfer(String ATM_ID, String fromAccount, String toAccount, String amountForTransfer) throws Exception{
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("from", fromAccount);
-        jsonObject.put("to", toAccount);
-        jsonObject.put("currency", CURRENCY);
-        jsonObject.put("amount", amountForTransfer);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/transfer";
-        connection(query, jsonObject);
-    }
 
-    public String getToAccountOwnerName(String ATM_ID, String toAccount) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("accountNumber", toAccount);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/getCustomerName";
-        return connection(query, jsonObject);
-    }
-
-    public HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws Exception {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("atm_id", ATM_ID);
-        jsonObject.put("customerID", customerID);
-        jsonObject.put("includeBalances", includeBalances);
-        String query = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/getAccountsByCustomerID";
-
-        String accountsInJsonString = connection(query, jsonObject);
-        return jsonToMap(accountsInJsonString);
-    }
-
-    private  HashMap<String, BigDecimal> jsonToMap(String jsonStringToHashMap) {
-        JSONObject json = new JSONObject(jsonStringToHashMap);
-        Iterator<String> keys = json.keys();
-        HashMap<String, BigDecimal> balancesMap = new HashMap<>();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            BigDecimal balance = new BigDecimal(json.get(key).toString());
-            balancesMap.put(key, balance);
+    public void deposit(String ATM_ID, String accountNumber, BigDecimal amount) throws DepositTransactionException {
+        try {
+            LOGGER.info("Start performing deposit");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("accountNumber", accountNumber);
+            jsonObject.put("amount", amount);
+            jsonObject.put("currency", CURRENCY);
+            String query = BASE_URL + "deposit";
+            connection(query, jsonObject);
+        } catch (ConnectException ex) {
+            LOGGER.error("DEPOSIT TRANSACTION ERROR");
+            throw new DepositTransactionException(ex.getMessage());
         }
-        return balancesMap;
     }
 
-    private String connection(String query, JSONObject jsonObject) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
-        try(AutoCloseable autoCloseable = connection::disconnect) {
+    public void changePIN(String ATM_ID, String cardNumber, String newPIN) throws ChangePINTransactionException {
+        try {
+            LOGGER.info("Start performing changePIN");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("cardNumber", cardNumber);
+            jsonObject.put("newPin", newPIN);
+            String query = BASE_URL + "changePin";
+            connection(query, jsonObject);
+        } catch (ConnectException ex) {
+            LOGGER.error("CHANGE PIN TRANSACTION ERROR");
+            throw new ChangePINTransactionException(ex.getMessage());
+        }
+    }
 
-            connection.setConnectTimeout(1000);
-            connection.setReadTimeout(1000);
-            connection.setDoOutput(true);
-            connection.getOutputStream().write(jsonObject.toString().getBytes());
-            connection.connect();
+    public void transfer(String ATM_ID, String fromAccount, String toAccount, String amountForTransfer) throws TransferTransactionException{
+        try {
+            LOGGER.info("Start performing transfer");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("from", fromAccount);
+            jsonObject.put("to", toAccount);
+            jsonObject.put("currency", CURRENCY);
+            jsonObject.put("amount", amountForTransfer);
+            String query = BASE_URL + "transfer";
+            connection(query, jsonObject);
+        } catch (ConnectException ex) {
+            LOGGER.error("TRANSFER TRANSACTION ERROR");
+            throw  new TransferTransactionException(ex.getMessage());
+        }
+    }
 
-            if(HttpURLConnection.HTTP_OK == connection.getResponseCode()) {
-                 BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                 return getResponseData(responseReader);
-            } else {
-                throw new Exception("Something went wrong during connection " + connection.getResponseCode());
+    public String getAccountOwnerName(String ATM_ID, String toAccount) throws AccountOwnerNameException {
+        try {
+            LOGGER.info("Start performing to get account owner name");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("accountNumber", toAccount);
+            String query = BASE_URL + "getCustomerName";
+            return connection(query, jsonObject);
+        } catch (ConnectException ex) {
+            LOGGER.error("GET ACCOUNT OWNER NAME TRANSACTION ERROR");
+            throw new AccountOwnerNameException(ex.getMessage());
+        }
+    }
+
+    public HashMap<String, BigDecimal> getAccountsByCustomerID(String ATM_ID, String customerID, boolean includeBalances) throws AccountsByCustomerIDException {
+        try {
+            LOGGER.info("Start performing to get accounts by customer ID");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("atm_id", ATM_ID);
+            jsonObject.put("customerID", customerID);
+            jsonObject.put("includeBalances", includeBalances);
+            String query = BASE_URL + "getAccountsByCustomerID";
+            String accountsInJsonString = connection(query, jsonObject);
+            return jsonToMap(accountsInJsonString);
+        } catch (ConnectException | JsonToMapException ex) {
+            LOGGER.error("GET ACCOUNTS BY CUSTOMER ID TRANSACTION ERROR");
+            throw new AccountsByCustomerIDException(ex.getMessage());
+        }
+    }
+
+    private  HashMap<String, BigDecimal> jsonToMap(String jsonStringToHashMap) throws JsonToMapException {
+        LOGGER.info("Start preparing map from jsonString");
+        try {
+            JSONObject json = new JSONObject(jsonStringToHashMap);
+            Iterator<String> keys = json.keys();
+            HashMap<String, BigDecimal> accountsBalancesMap = new HashMap<>();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                try {
+                    BigDecimal balance = new BigDecimal(json.get(key).toString());
+                    accountsBalancesMap.put(key, balance);
+                } catch (NumberFormatException ex) {
+                    LOGGER.warn("Number is not valid representation of BigDecimal: '{}'", json.get(key).toString(), ex);
+                    throw new JsonToMapException(somethingWentWrongMsg);
+                }
             }
-        } catch (IOException ex) {
-            throw new IOException("Something went wrong, during read your data");
+            LOGGER.info("Map is prepared");
+            return accountsBalancesMap;
+        } catch (JSONException jsonException) {
+            LOGGER.error("String doesn't match json format: '{}'", jsonStringToHashMap, jsonException);
+            throw new JsonToMapException(jsonStringToHashMap);
         }
-
     }
 
-    private String getResponseData(BufferedReader responseReader) throws IOException {
+    private String connection(String query, JSONObject jsonObject) throws ConnectException {
+        LOGGER.info("Performing connection with DB");
+        int responseCode = -1;
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
+            try(AutoCloseable autoCloseable = connection::disconnect) {
+                connection.setConnectTimeout(1000);
+                connection.setReadTimeout(1000);
+                connection.setDoOutput(true);
+                connection.getOutputStream().write(jsonObject.toString().getBytes());
+                connection.connect();
+                BufferedReader responseReader;
+                if((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_OK) {
+                    LOGGER.info("Connection is established");
+                    LOGGER.info("Preparing for getting response data from buffer");
+                    responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    return getResponseData(responseReader);
+                }else {
+                    //responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), connection.getResponseMessage());
+                    throw new Exception(somethingWentWrongMsg);
+                }
+            }
+        } catch (SocketTimeoutException ex) {
+            LOGGER.error("CONNECTION TIME OUT", ex);
+            throw new ConnectException(somethingWentWrongMsg);
+        } catch (MalformedURLException ex) {
+            LOGGER.error("INVALID URL: '{}'", query, ex);
+            throw new ConnectException(somethingWentWrongMsg);
+        } catch (Exception ex) {
+            LOGGER.error("BAD REQUEST EXCEPTION: '{}'", responseCode, ex);
+            throw new ConnectException(ex.getMessage());
+        }
+    }
+
+    private String getResponseData(BufferedReader responseReader) throws ReadResponseDataException {
         StringBuilder responseData = new StringBuilder();
         String line;
-        while ((line = responseReader.readLine()) != null) {
-            responseData.append(line);
+        LOGGER.info("Start reading response data from buffer");
+        try {
+            while ((line = responseReader.readLine()) != null) {
+                responseData.append(line);
+            }
+        } catch (IOException bufferReaderEx) {
+            LOGGER.error("getResponseData(): '{}'", responseData, bufferReaderEx);
+            throw new ReadResponseDataException(somethingWentWrongMsg);
         }
+        LOGGER.info("Response data is read, '{}'", responseData);
         return  responseData.toString();
     }
 }
