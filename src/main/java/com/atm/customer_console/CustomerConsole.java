@@ -15,14 +15,14 @@ import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
 
-public interface CustomerConsole {
+public class CustomerConsole {
 
-    Scanner console = new Scanner(System.in);
-    Console pinReader = System.console();
+    static Scanner console = new Scanner(System.in);
+    static Console pinReader = System.console();
 
-    Logger LOGGER = LogManager.getLogger(CustomerConsole.class);
+    static Logger LOGGER = LogManager.getLogger(CustomerConsole.class);
 
-    static String askPIN() throws IncorrectPinException {
+    public static String askPIN() throws IncorrectPinException {
         LOGGER.info("Waiting for reading PIN");
         String pin = null;
         int attempts_count = 0;
@@ -42,7 +42,7 @@ public interface CustomerConsole {
                 break;
             } catch (IncorrectPinException exception) {
                 displayMessage(exception.getMessage());
-                LOGGER.warn("'{}', Invalid PIN inserted", exception.getMessage());
+                LOGGER.warn("'{}', Invalid PIN inserted: '{}'", exception.getMessage(), pin);
                 if (attempts_count == MAX_ATTEMPTS) {
                     LOGGER.error("Number of attempts ended", exception);
                     throw new IncorrectPinException("Number of attempts ended");
@@ -53,7 +53,7 @@ public interface CustomerConsole {
         return pin;
     }
 
-    static void continueOperation() throws CancelException {
+    public static void continueOperation() throws CancelException {
         String cancel = console.nextLine();
         LOGGER.info("Perform another transaction answer: '{}'", cancel);
         if(cancel.equals("n") || cancel.equals("N") ||
@@ -62,7 +62,7 @@ public interface CustomerConsole {
            cancel.equals("n0") || cancel.equals("N0")) throw new CancelException("Have a good day ❤️");
     }
 
-    static double acceptCash() {
+    public static double acceptBanknote() {
         LOGGER.info("Performing acceptCash");
         displayBanknotes();
         displayDialogMessage("Please, put in your banknotes: ");
@@ -77,9 +77,11 @@ public interface CustomerConsole {
                 endAcceptCash = true;
                 console.nextLine();
             } catch (InputMismatchException exception) {
+                banknote = 0.0;
                 LOGGER.warn("WRONG INPUT OF BANKNOTE");
                 displayMessage("Invalid banknote, take that");
             } catch (InvalidBanknoteException exception) {
+                banknote = 0.0;
                 LOGGER.warn("INVALID BANKNOTE: '{}'", banknote);
                 displayMessage(exception.getMessage());
             }
@@ -88,7 +90,7 @@ public interface CustomerConsole {
         return banknote;
     }
 
-    static private void displayBanknotes() {
+    private static void displayBanknotes() {
         displayMessage("This is valid banknotes");
         int counter = 1;
         for (Banknote banknote : Banknote.values()) {
@@ -109,7 +111,7 @@ public interface CustomerConsole {
         throw new InvalidBanknoteException("Invalid banknote, take that");
     }
 
-    static double askAmount() {
+    public static double askAmount() {
         LOGGER.info("Performing askAmount");
         double amount = -1;
         displayDialogMessage("Please, enter amount: ");
@@ -118,10 +120,11 @@ public interface CustomerConsole {
                 amount = console.nextDouble();
                 if (amount % Banknote.MINIMAL_BANKNOTE != 0) throw new InvalidBanknoteException("");
                 break;
-            } catch (Exception ex) {
+            } catch (InputMismatchException | InvalidBanknoteException ex) {
                 LOGGER.warn("INVALID AMOUNT: '{}'", Double.toString(amount));
                 displayDialogMessage("Please, enter right amount: ");
             } finally {
+                LOGGER.info("Entered Amount: '{}'", amount);
                 console.nextLine();
             }
         }
@@ -129,7 +132,7 @@ public interface CustomerConsole {
         return amount;
     }
 
-    static BigDecimal askAmountForTransfer() {
+    public static BigDecimal askAmountForTransfer() {
         LOGGER.info("Performing askAmountForTransfer");
         BigDecimal amount = new BigDecimal(-1);
         displayDialogMessage("Please, enter amount: ");
@@ -148,7 +151,7 @@ public interface CustomerConsole {
         return amount;
     }
 
-    static String askAccountNumber() {
+    public static String askAccountNumber() {
         LOGGER.info("Performing askAccountNumber");
         displayDialogMessage("Please, insert account number: ");
         String accountNumber;
@@ -169,7 +172,7 @@ public interface CustomerConsole {
         return accountNumber.length() == 16 && accountNumber.matches("^[0-9]+$");
     }
 
-    static Action chooseAction() {
+    public static Action chooseAction() {
         LOGGER.info("Start choosing action");
         displayActions();
         displayDialogMessage("Please choose an action: ");
@@ -191,7 +194,7 @@ public interface CustomerConsole {
         return Action.values()[action];
     }
 
-    static void displayAccounts(HashMap<String, BigDecimal> accounts) {
+    public static void displayAccounts(HashMap<String, BigDecimal> accounts) {
         CustomerConsole.displayMessage("#:   Account number : balance");
         StringBuilder stringBuilder = new StringBuilder();
         int count = 1;
@@ -204,7 +207,7 @@ public interface CustomerConsole {
         CustomerConsole.displayMessage(stringBuilder.toString());
     }
 
-    static int chooseAccountIndex(int accountNumbers) {
+    public static int chooseAccountIndex(int accountNumbers) {
         LOGGER.info("Start choosing account index");
         displayDialogMessage("Please choose an account: ");
         boolean rightAccount = false;
@@ -240,7 +243,7 @@ public interface CustomerConsole {
         }
     }
 
-    static void displayMessage(String screenMsg) {
+    public static void displayMessage(String screenMsg) {
         System.out.println(screenMsg);
     }
 
