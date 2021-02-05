@@ -264,7 +264,7 @@ public class ATM implements ATMInterface {
             while (true) {
                 try {
                     LOGGER.info("Start accepting cash");
-                    banknote = CustomerConsole.acceptCash();
+                    banknote = CustomerConsole.acceptBanknote();
                     LOGGER.info("Adding banknote to ATM");
                     cashDispenser.addCash(banknote);
                     wholeDeposit += banknote;
