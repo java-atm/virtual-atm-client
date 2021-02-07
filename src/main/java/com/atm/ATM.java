@@ -224,7 +224,7 @@ public class ATM implements ATMInterface {
             String account = getAccountByAccountNumber();
             BigDecimal balance = accounts.get(account);
             LOGGER.info("Account: '{}', balance: '{}'", account, balance);
-            double amount = CustomerConsole.askAmount();
+            double amount = CustomerConsole.askAmountForWithdraw();
             if (balance.compareTo(BigDecimal.valueOf(amount)) >= 0) {
                 try {
                     LOGGER.info("Dispense cash from ATM");
@@ -263,7 +263,7 @@ public class ATM implements ATMInterface {
             wholeDeposit = 0.0;
             while (true) {
                 try {
-                    LOGGER.info("Start accepting cash");
+                    LOGGER.info("Start accepting banknotes");
                     banknote = CustomerConsole.acceptBanknote();
                     LOGGER.info("Adding banknote to ATM");
                     cashDispenser.addCash(banknote);
