@@ -195,7 +195,7 @@ public class BackendConnection implements BackendConnectionInterface {
                     responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     return getResponseData(responseReader);
                 }else {
-                    responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    responseReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
                     String data = getResponseData(responseReader);
                     LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), data);
                     throw new Exception(data);
