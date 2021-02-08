@@ -196,6 +196,7 @@ public class ATM implements ATMInterface {
                 CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
                 return toAccount;
             } catch (AccountOwnerNameException ex) {
+                LOGGER.warn("Something went wrong: '{}'", ex.getMessage(), ex);
                 CustomerConsole.displayMessage(ex.getMessage() + " try again");
             }
         }
