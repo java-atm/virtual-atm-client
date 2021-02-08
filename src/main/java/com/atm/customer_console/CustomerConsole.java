@@ -42,7 +42,7 @@ public class CustomerConsole {
                 break;
             } catch (IncorrectPinException exception) {
                 displayMessage(exception.getMessage());
-                LOGGER.warn("'{}', Invalid PIN inserted: '{}'", exception.getMessage(), pin);
+                LOGGER.warn("'{}', Invalid PIN inserted", exception.getMessage());
                 if (attempts_count == MAX_ATTEMPTS) {
                     LOGGER.error("Number of attempts ended", exception);
                     throw new IncorrectPinException("Number of attempts ended");
@@ -67,21 +67,18 @@ public class CustomerConsole {
         displayBanknotes();
         displayDialogMessage("Please, put in your banknotes: ");
         double banknote = 0.0;
-        boolean endAcceptCash = false;
-        while(!endAcceptCash) {
+        while(true) {
             try {
                 banknote = console.nextDouble();
                 LOGGER.info("Banknote is inserted");
                 isBanknoteValid(banknote);
                 displayMessage("You put in: " + banknote);
-                endAcceptCash = true;
                 console.nextLine();
+                break;
             } catch (InputMismatchException exception) {
-                banknote = 0.0;
                 LOGGER.warn("WRONG INPUT OF BANKNOTE");
                 displayMessage("Invalid banknote, take that");
             } catch (InvalidBanknoteException exception) {
-                banknote = 0.0;
                 LOGGER.warn("INVALID BANKNOTE: '{}'", banknote);
                 displayMessage(exception.getMessage());
             }
@@ -111,14 +108,15 @@ public class CustomerConsole {
         throw new InvalidBanknoteException("Invalid banknote, take that");
     }
 
-    public static double askAmount() {
+    public static double askAmountForWithdraw() {
         LOGGER.info("Performing askAmount");
         double amount = -1;
         displayDialogMessage("Please, enter amount: ");
         while(true) {
             try {
                 amount = console.nextDouble();
-                if (amount % Banknote.MINIMAL_BANKNOTE != 0) throw new InvalidBanknoteException("");
+                if (amount % Banknote.MINIMAL_BANKNOTE != 0 ||
+                        amount == 0 || amount < 0) throw new InvalidBanknoteException("");
                 break;
             } catch (InputMismatchException | InvalidBanknoteException ex) {
                 LOGGER.warn("INVALID AMOUNT: '{}'", Double.toString(amount));
@@ -139,6 +137,8 @@ public class CustomerConsole {
         while(true) {
             try {
                 amount = console.nextBigDecimal();
+                int isValidAmount = amount.compareTo(BigDecimal.ZERO);
+                if(isValidAmount <= 0) throw new InputMismatchException();
                 break;
             } catch (InputMismatchException exception) {
                 LOGGER.warn("INVALID AMOUNT: '{}'", amount.toString());
@@ -190,7 +190,7 @@ public class CustomerConsole {
                 console.nextLine();
             }
         }
-        LOGGER.info("Action is chosen: '{}'", Action.values()[action]);
+        LOGGER.info("Action is chosen: '{}' : '{}'", action, Action.values()[action]);
         return Action.values()[action];
     }
 

@@ -179,13 +179,15 @@ public class BackendConnection implements BackendConnectionInterface {
         LOGGER.info("Performing connection with DB");
         int responseCode = -1;
         try {
+            LOGGER.info("Establishing connection with Server");
             HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
             try(AutoCloseable autoCloseable = connection::disconnect) {
-                connection.setConnectTimeout(1000);
-                connection.setReadTimeout(1000);
+                connection.setConnectTimeout(2000);
+                connection.setReadTimeout(2000);
                 connection.setDoOutput(true);
                 connection.getOutputStream().write(jsonObject.toString().getBytes());
                 connection.connect();
+                LOGGER.info("Connection open");
                 BufferedReader responseReader;
                 if((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_OK) {
                     LOGGER.info("Connection is established");
@@ -194,8 +196,9 @@ public class BackendConnection implements BackendConnectionInterface {
                     return getResponseData(responseReader);
                 }else {
                     responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), getResponseData(responseReader));
-                    throw new Exception(somethingWentWrongMsg);
+                    String data = getResponseData(responseReader);
+                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), data);
+                    throw new Exception(data);
                 }
             }
         } catch (SocketTimeoutException ex) {
@@ -205,7 +208,7 @@ public class BackendConnection implements BackendConnectionInterface {
             LOGGER.error("INVALID URL: '{}'", query, ex);
             throw new ConnectException(somethingWentWrongMsg);
         } catch (Exception ex) {
-            LOGGER.error("BAD REQUEST EXCEPTION: '{}'", responseCode, ex);
+            LOGGER.error("BAD REQUEST EXCEPTION: '{}', '{}'", responseCode, query, ex);
             throw new ConnectException(ex.getMessage());
         }
     }
