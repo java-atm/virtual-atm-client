@@ -172,10 +172,7 @@ public class ATM implements ATMInterface {
         try {
             String fromAccount = getAccountByAccountNumber();
             CustomerConsole.displayMessage("Enter an account number where you want to transfer");
-            String toAccount = CustomerConsole.askAccountNumber();
-            String toAccountOwnerName = backendConnection.getAccountOwnerName(ATM_ID, toAccount);
-            LOGGER.info("To account owner name: '{}'", toAccountOwnerName);
-            CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
+            String toAccount = getToAccount();
             CustomerConsole.displayMessage("Enter amount which you want to transfer");
             BigDecimal amountForTransfer = CustomerConsole.askAmountForTransfer();
             LOGGER.info("Amount for transfer: '{}'", amountForTransfer);
@@ -184,11 +181,24 @@ public class ATM implements ATMInterface {
             accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
             LOGGER.info("Transfer performed successful");
             CustomerConsole.displayAccounts(accounts);
-        } catch (AccountsByCustomerIDException | AccountOwnerNameException | TransferTransactionException ex) {
+        } catch (AccountsByCustomerIDException | TransferTransactionException ex) {
             LOGGER.error("Transfer transaction is failed", ex);
             CustomerConsole.displayMessage(ex.getMessage());
         }
+    }
 
+    private String getToAccount() {
+        while(true) {
+            String toAccount = CustomerConsole.askAccountNumber();
+            try {
+                String toAccountOwnerName = backendConnection.getAccountOwnerName(ATM_ID, toAccount);
+                LOGGER.info("To account owner name: '{}'", toAccountOwnerName);
+                CustomerConsole.displayMessage("Customer name: " + toAccountOwnerName);
+                return toAccount;
+            } catch (AccountOwnerNameException ex) {
+                CustomerConsole.displayMessage(ex.getMessage() + " try again");
+            }
+        }
     }
 
     protected void checkBalance() {

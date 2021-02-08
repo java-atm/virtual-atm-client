@@ -196,8 +196,9 @@ public class BackendConnection implements BackendConnectionInterface {
                     return getResponseData(responseReader);
                 }else {
                     responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), getResponseData(responseReader));
-                    throw new Exception(somethingWentWrongMsg);
+                    String data = getResponseData(responseReader);
+                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), data);
+                    throw new Exception(data);
                 }
             }
         } catch (SocketTimeoutException ex) {
