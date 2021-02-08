@@ -4,6 +4,7 @@ import com.utils.exceptions.atm_exceptions.IncorrectPinException;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,10 +47,6 @@ class CustomerConsoleTest {
         for (String s : correctPasswords) {
             assertDoesNotThrow(CustomerConsole::askPIN);
         }
-    }
-
-    @Test
-    void continueOperation() {
     }
 
     @Test
@@ -133,26 +130,78 @@ class CustomerConsoleTest {
     }
 
     @Test
-    void askAmountForTransfer() {
+    void askAmountForTransferWhenAmountsAreInvalid() {
+        BigDecimal[] severalValidAmounts = new BigDecimal[]{new BigDecimal("1000.003"), new BigDecimal("0.234")};
+        Object[] amounts = new Object[]{0, -100, "0.898.765", 'k', severalValidAmounts[0], "01.01.01", '\'', "-200", severalValidAmounts[1]};
+        ByteArrayInputStream inputAmount = new ByteArrayInputStream((
+                        amounts[0] + System.lineSeparator() +
+                        amounts[1] + System.lineSeparator() +
+                        amounts[2] + System.lineSeparator() +
+                        amounts[3] + System.lineSeparator() +
+                        amounts[4] + System.lineSeparator() +
+                        amounts[5] + System.lineSeparator() +
+                        amounts[6] + System.lineSeparator() +
+                        amounts[7] + System.lineSeparator() +
+                        amounts[8] + System.lineSeparator()).getBytes());
+        System.setIn(inputAmount);
+        CustomerConsole.console = new Scanner(System.in);
+        assertEquals(severalValidAmounts[0], CustomerConsole.askAmountForTransfer());
+        assertEquals(severalValidAmounts[1], CustomerConsole.askAmountForTransfer());
     }
 
     @Test
-    void askAccountNumber() {
+    void askAmountForTransferIfOnlyValidAmounts() {
+        BigDecimal[] amounts = new BigDecimal[]{
+                new BigDecimal("1"), new BigDecimal("100"),
+                new BigDecimal("0.898765"), new BigDecimal("1010"),
+                new BigDecimal("1000.321"), new BigDecimal("0011"),
+                new BigDecimal("0.001"), new BigDecimal("0.200")};
+        ByteArrayInputStream inputAmount = new ByteArrayInputStream((
+                        amounts[0] + System.lineSeparator() +
+                        amounts[1] + System.lineSeparator() +
+                        amounts[2] + System.lineSeparator() +
+                        amounts[3] + System.lineSeparator() +
+                        amounts[4] + System.lineSeparator() +
+                        amounts[5] + System.lineSeparator() +
+                        amounts[6] + System.lineSeparator() +
+                        amounts[7] + System.lineSeparator()).getBytes());
+        System.setIn(inputAmount);
+        CustomerConsole.console = new Scanner(System.in);
+        for (BigDecimal amount : amounts) {
+            assertEquals(amount, CustomerConsole.askAmountForTransfer());
+        }
     }
 
     @Test
-    void chooseAction() {
+    void askAccountNumberIfOnlyValidAccountNumber() {
+        Object[] validAccountNumbers = new Object[]{"0000000000000000", "0101010101010101"};
+        ByteArrayInputStream inputAccountNumber = new ByteArrayInputStream((
+                        validAccountNumbers[0] + System.lineSeparator() +
+                        validAccountNumbers[1] + System.lineSeparator()).getBytes());
+        System.setIn(inputAccountNumber);
+        CustomerConsole.console = new Scanner(System.in);
+        for (Object accountNumber : validAccountNumbers) {
+            assertEquals(accountNumber, CustomerConsole.askAccountNumber());
+        }
     }
 
     @Test
-    void displayAccounts() {
-    }
-
-    @Test
-    void chooseAccountIndex() {
-    }
-
-    @Test
-    void displayMessage() {
+    void askAccountNumberWhileNotBeEnteredValidOne() {
+        Object[] severalValidAccountNumbers = new Object[]{"0000000000000000", "0101010101010101"};
+        Object[] accountNumbersForTest = new Object[]{111111111111111L, 100, "0.898.765", 'k', severalValidAccountNumbers[0], "01.01.01", "'pp'", "-200", severalValidAccountNumbers[1]};
+        ByteArrayInputStream inputAccountNumbers = new ByteArrayInputStream((
+                        accountNumbersForTest[0] + System.lineSeparator() +
+                        accountNumbersForTest[1] + System.lineSeparator() +
+                        accountNumbersForTest[2] + System.lineSeparator() +
+                        accountNumbersForTest[3] + System.lineSeparator() +
+                        accountNumbersForTest[4] + System.lineSeparator() +
+                        accountNumbersForTest[5] + System.lineSeparator() +
+                        accountNumbersForTest[6] + System.lineSeparator() +
+                        accountNumbersForTest[7] + System.lineSeparator() +
+                        accountNumbersForTest[8] + System.lineSeparator()).getBytes());
+        System.setIn(inputAccountNumbers);
+        CustomerConsole.console = new Scanner(System.in);
+        assertEquals(severalValidAccountNumbers[0], CustomerConsole.askAccountNumber());
+        assertEquals(severalValidAccountNumbers[1], CustomerConsole.askAccountNumber());
     }
 }

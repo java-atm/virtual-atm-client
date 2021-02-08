@@ -137,6 +137,8 @@ public class CustomerConsole {
         while(true) {
             try {
                 amount = console.nextBigDecimal();
+                int isValidAmount = amount.compareTo(BigDecimal.ZERO);
+                if(isValidAmount <= 0) throw new InputMismatchException();
                 break;
             } catch (InputMismatchException exception) {
                 LOGGER.warn("INVALID AMOUNT: '{}'", amount.toString());
@@ -188,7 +190,7 @@ public class CustomerConsole {
                 console.nextLine();
             }
         }
-        LOGGER.info("Action is chosen: '{}'", Action.values()[action]);
+        LOGGER.info("Action is chosen: '{}' : '{}'", action, Action.values()[action]);
         return Action.values()[action];
     }
 
