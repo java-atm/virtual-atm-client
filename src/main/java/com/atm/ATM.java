@@ -7,7 +7,6 @@ import com.backend_connection.BackendConnection;
 import com.utils.cash.RealCash;
 import com.utils.customer.Customer;
 import com.utils.enums.Action;
-import com.utils.enums.TransactionType;
 import com.utils.exceptions.BaseException;
 import com.utils.exceptions.atm_exceptions.CancelException;
 import com.utils.exceptions.atm_exceptions.CardIsInvalidException;
@@ -123,8 +122,8 @@ public class ATM implements ATMInterface {
         LOGGER.info("Start serving customer");
         while(true) {
             currentTransactionBuilder = Transactions.getTransactionBuilder().
-                    setATM_ID(ATM_ID).
-                    setCustomerID(currentCustomer.getCustomerID());
+                                                        setATM_ID(ATM_ID).
+                                                        setCustomerID(currentCustomer.getCustomerID());
             CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
             lastSelectedAction = CustomerConsole.chooseAction();
             performSelectedAction(lastSelectedAction);
@@ -157,28 +156,27 @@ public class ATM implements ATMInterface {
         switch (action) {
             case CHECK_BALANCE:
                 currentTransactionBuilder.
-                        setTransactionType(TransactionType.CHECK_BALANCE.name());
+                        setTransactionType(Action.CHECK_BALANCE.name());
                 checkBalance();
                 break;
-            case WITHDRAWAL:
+            case WITHDRAW:
                 currentTransactionBuilder.
-                        setTransactionType(TransactionType.WITHDRAW.name());
+                        setTransactionType(Action.WITHDRAW.name());
                 withdraw();
                 break;
             case DEPOSIT:
                 currentTransactionBuilder.
-
-                        setTransactionType(TransactionType.CHECK_BALANCE.name());
+                        setTransactionType(Action.CHECK_BALANCE.name());
                 deposit();
                 break;
             case TRANSFER:
                 currentTransactionBuilder.
-                        setTransactionType(TransactionType.TRANSFER.name());
+                        setTransactionType(Action.TRANSFER.name());
                 transfer();
                 break;
-            case PIN_CHANGE:
+            case CHANGE_PIN:
                 currentTransactionBuilder.
-                        setTransactionType(TransactionType.CHANGE_PIN.name());
+                        setTransactionType(Action.CHANGE_PIN.name());
                 changePIN();
                 break;
             case EXIT:
