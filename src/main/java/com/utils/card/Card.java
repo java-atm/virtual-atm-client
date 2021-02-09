@@ -1,4 +1,4 @@
-package com;
+package com.utils.card;
 
 import com.utils.enums.CardInfo;
 

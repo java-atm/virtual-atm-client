@@ -1,6 +1,6 @@
 package com.atm.cash_dispenser;
 
-import com.RealCash;
+import com.utils.cash.RealCash;
 import com.utils.enums.Banknote;
 import com.utils.exceptions.atm_exceptions.CashNotEnoughException;
 import org.apache.logging.log4j.LogManager;

@@ -1,4 +1,4 @@
-package com;
+package com.utils.cash;
 
 import com.utils.enums.Banknote;
 import org.apache.logging.log4j.LogManager;

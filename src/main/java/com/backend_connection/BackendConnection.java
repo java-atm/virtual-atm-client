@@ -1,6 +1,6 @@
 package com.backend_connection;
 
-import com.Card;
+import com.utils.card.Card;
 import com.utils.enums.AccountCurrency;
 import com.utils.exceptions.JsonToMapException;
 import com.utils.exceptions.ReadResponseDataException;

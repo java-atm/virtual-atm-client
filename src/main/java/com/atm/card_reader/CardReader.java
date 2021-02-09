@@ -1,6 +1,6 @@
 package com.atm.card_reader;
 
-import com.Card;
+import com.utils.card.Card;
 import com.utils.enums.CardInfo;
 import com.utils.exceptions.atm_exceptions.CardIsInvalidException;
 import org.apache.logging.log4j.LogManager;
