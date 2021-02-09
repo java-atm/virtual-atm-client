@@ -1,5 +1,5 @@
-import com.RealCash;
 import com.atm.ATM;
+import com.utils.cash.RealCash;
 
 public class Main {
     public static void main(String[] args) {

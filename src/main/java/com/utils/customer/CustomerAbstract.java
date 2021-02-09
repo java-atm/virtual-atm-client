@@ -1,4 +1,4 @@
-package com;
+package com.utils.customer;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

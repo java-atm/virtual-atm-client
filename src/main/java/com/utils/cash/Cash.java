@@ -1,4 +1,4 @@
-package com;
+package com.utils.cash;
 
 public class Cash extends CashAbstract {
 

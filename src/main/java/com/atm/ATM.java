@@ -1,18 +1,23 @@
 package com.atm;
 
-import com.Customer;
-import com.RealCash;
 import com.atm.card_reader.CardReader;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
 import com.backend_connection.BackendConnection;
+import com.utils.cash.RealCash;
+import com.utils.customer.Customer;
 import com.utils.enums.Action;
 import com.utils.exceptions.BaseException;
-import com.utils.exceptions.atm_exceptions.*;
-
+import com.utils.exceptions.atm_exceptions.CancelException;
+import com.utils.exceptions.atm_exceptions.CardIsInvalidException;
+import com.utils.exceptions.atm_exceptions.CashNotEnoughException;
+import com.utils.exceptions.atm_exceptions.IncorrectPinException;
 import com.utils.exceptions.transaction_exceptions.*;
+import com.utils.transactions.TransactionBuilder;
+import com.utils.transactions.Transactions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -29,10 +34,10 @@ public class ATM implements ATMInterface {
     private Customer currentCustomer;
     private final BackendConnection backendConnection;
     private HashMap<String, BigDecimal> accounts;
-    //private final Transaction currentTransaction;
+    private TransactionBuilder currentTransactionBuilder;
 
     private Action lastSelectedAction;
-    double wholeDeposit = 0.0;
+    private double wholeDeposit = 0.0;
 
     public ATM(final String ATM_ID, RealCash initialCash) {
         this.ATM_ID = ATM_ID;
@@ -116,11 +121,18 @@ public class ATM implements ATMInterface {
     private void serveCustomer() throws CancelException {
         LOGGER.info("Start serving customer");
         while(true) {
+            currentTransactionBuilder = Transactions.getTransactionBuilder().
+                                                        setATM_ID(ATM_ID).
+                                                        setCustomerID(currentCustomer.getCustomerID());
             CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
             lastSelectedAction = CustomerConsole.chooseAction();
             performSelectedAction(lastSelectedAction);
             try {
                 LOGGER.info("Dialog to choose another transaction");
+                JSONObject transactionJson = new JSONObject(currentTransactionBuilder.buildTransaction());
+                //some code for getting transactionID
+                currentTransactionBuilder.setTransactionID("TransID");
+                System.out.println(currentTransactionBuilder.buildTransaction());
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
                 CustomerConsole.continueOperation();
             } catch (CancelException exception) {
@@ -143,18 +155,28 @@ public class ATM implements ATMInterface {
     protected void performSelectedAction(Action action) throws CancelException{
         switch (action) {
             case CHECK_BALANCE:
+                currentTransactionBuilder.
+                        setTransactionType(Action.CHECK_BALANCE.name());
                 checkBalance();
                 break;
-            case WITHDRAWAL:
+            case WITHDRAW:
+                currentTransactionBuilder.
+                        setTransactionType(Action.WITHDRAW.name());
                 withdraw();
                 break;
             case DEPOSIT:
+                currentTransactionBuilder.
+                        setTransactionType(Action.CHECK_BALANCE.name());
                 deposit();
                 break;
             case TRANSFER:
+                currentTransactionBuilder.
+                        setTransactionType(Action.TRANSFER.name());
                 transfer();
                 break;
-            case PIN_CHANGE:
+            case CHANGE_PIN:
+                currentTransactionBuilder.
+                        setTransactionType(Action.CHANGE_PIN.name());
                 changePIN();
                 break;
             case EXIT:
@@ -181,6 +203,10 @@ public class ATM implements ATMInterface {
             accounts = backendConnection.getAccountsByCustomerID(ATM_ID, currentCustomer.getCustomerID(), true);
             LOGGER.info("Transfer performed successful");
             CustomerConsole.displayAccounts(accounts);
+            currentTransactionBuilder.
+                    setFromAccount(fromAccount).
+                    setToAccount(toAccount).
+                    setAmount(amountForTransfer.toString());
         } catch (AccountsByCustomerIDException | TransferTransactionException ex) {
             LOGGER.error("Transfer transaction is failed", ex);
             CustomerConsole.displayMessage(ex.getMessage());
@@ -241,6 +267,9 @@ public class ATM implements ATMInterface {
                     LOGGER.info("Dispense cash from ATM");
                     cashDispenser.dispenseCash(amount);
                     backendConnection.withdraw(ATM_ID, account, BigDecimal.valueOf(amount));
+                    currentTransactionBuilder.
+                            setFromAccount(account).
+                            setAmount(String.valueOf(amount));
                     CustomerConsole.displayMessage("Take your cash: " + amount);
                 } catch (CashNotEnoughException exception) {
                     LOGGER.error("ATM DOES NOT HAVE ENOUGH MONEY");
@@ -255,7 +284,6 @@ public class ATM implements ATMInterface {
                 CustomerConsole.displayMessage("YOU ARE A POOR-MAN");
             }
             CustomerConsole.displayMessage("Finish withdraw transaction");
-
         } catch (AccountsByCustomerIDException ex) {
             LOGGER.error("WITHDRAW TRANSACTION IS FAILED. CAUSE getAccountByAccountNumber ", ex);
             CustomerConsole.displayMessage(ex.getMessage());
@@ -294,6 +322,9 @@ public class ATM implements ATMInterface {
                     backendConnection.deposit(ATM_ID, account, new BigDecimal(wholeDeposit));
                     LOGGER.info("Deposit is performed successful");
                     CustomerConsole.displayMessage("Your deposit is: " + wholeDeposit);
+                    currentTransactionBuilder.
+                            setToAccount(account).
+                            setAmount(String.valueOf(wholeDeposit));
                 } catch (Exception e) {
                     LOGGER.error("DEPOSIT TRANSACTION IS FAILED");
                     CustomerConsole.displayMessage(e.getMessage());

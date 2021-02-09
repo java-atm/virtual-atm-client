@@ -3,10 +3,10 @@ package com.utils.enums;
 public enum Action {
 
     CHECK_BALANCE(1, "Check balance"),
-    WITHDRAWAL(2, "Withdrawal"),
+    WITHDRAW(2, "Withdrawal"),
     DEPOSIT(3, "Deposit"),
     TRANSFER(4, "Transfer"),
-    PIN_CHANGE(5, "Change PIN"),
+    CHANGE_PIN(5, "Change PIN"),
     EXIT(6, "Exit");
 
     private final int actionInt;

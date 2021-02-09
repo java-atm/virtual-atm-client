@@ -1,6 +1,6 @@
 package com.backend_connection;
 
-import com.Card;
+import com.utils.card.Card;
 import com.utils.exceptions.transaction_exceptions.*;
 
 import java.math.BigDecimal;

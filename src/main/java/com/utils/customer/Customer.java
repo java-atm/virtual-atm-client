@@ -1,4 +1,4 @@
-package com;
+package com.utils.customer;
 
 public class Customer extends CustomerAbstract{
     public Customer(String customerID, String phoneNumber, String email, String name, String surname) {
