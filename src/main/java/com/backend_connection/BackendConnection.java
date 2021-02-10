@@ -24,7 +24,7 @@ public class BackendConnection implements BackendConnectionInterface {
 
     private final static String CURRENCY = AccountCurrency.AMD.getCurrency();
     private final String somethingWentWrongMsg = "Something went wrong";
-    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/";
+    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend_updated/";
 
     public String authenticate(String ATM_ID, Card card, String pin) throws AuthenticateException {
         try {
@@ -189,16 +189,38 @@ public class BackendConnection implements BackendConnectionInterface {
                 connection.connect();
                 LOGGER.info("Connection open");
                 BufferedReader responseReader;
+                JSONObject responseJson;
                 if((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_OK) {
                     LOGGER.info("Connection is established");
-                    LOGGER.info("Preparing for getting response data from buffer");
+                    LOGGER.info("Preparing for getting valid response data from buffer");
                     responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    return getResponseData(responseReader);
-                }else {
+                    responseJson = new JSONObject(getResponseData(responseReader));
+                    return responseJson.get("result").toString();
+                } else if ((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_ACCEPTED) {
+                    LOGGER.info("Connection is established");
+                    LOGGER.warn("Preparing for getting ERROR message FOR USER from response data from buffer");
+                    responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    responseJson = new JSONObject(getResponseData(responseReader));
+                    throw new TransactionException(responseJson.get("error").toString());
+                } else if ((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_FORBIDDEN) {
+                    LOGGER.info("Connection is established");
+                    LOGGER.error("Preparing for getting ERROR message from response data from buffer");
                     responseReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-                    String data = getResponseData(responseReader);
-                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), data);
-                    throw new Exception(data);
+                    responseJson = new JSONObject(getResponseData(responseReader));
+                    LOGGER.error("ATM_ID IS NOT VALID: {}", responseJson.get("error"));
+                    throw new TransactionException("WE ARE CALLING THE POLICE ! ! ! UIIIUUUUIIIIIUUUU 1-02");
+                } else if ((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_BAD_REQUEST) {
+                    LOGGER.info("Connection is established");
+                    LOGGER.error("Preparing for getting ERROR message from response data from buffer");
+                    responseReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    responseJson = new JSONObject(getResponseData(responseReader));
+                    LOGGER.error("SOMEWHERE I MADE A MISTAKE: {}", responseJson.get("error"));
+                    throw new TransactionException("please, try again\nIF THE PROBLEM PERSISTS CALL YOUR BANK");
+                } else {
+                    responseReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    responseJson = new JSONObject(getResponseData(responseReader));
+                    LOGGER.error("Response code: '{}', message : '{}'", connection.getResponseCode(), responseJson.get("error"));
+                    throw new Exception("please, try again\nIF THE PROBLEM PERSISTS CALL YOUR BANK");
                 }
             }
         } catch (SocketTimeoutException ex) {
