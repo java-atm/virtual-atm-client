@@ -7,7 +7,7 @@ public class TransactionBuilder {
     }
 
     public TransactionBuilder setATM_ID(String ATM_ID) {
-        newTransactions.setATM_ID(ATM_ID);
+        newTransactions.setAtm_id(ATM_ID);
         return this;
     }
 
@@ -38,6 +38,11 @@ public class TransactionBuilder {
 
     public TransactionBuilder setTransactionID(String id) {
         newTransactions.setTransactionID(id);
+        return this;
+    }
+
+    public TransactionBuilder setCardNumber(String cardNumber) {
+        newTransactions.setCard(cardNumber);
         return this;
     }
 

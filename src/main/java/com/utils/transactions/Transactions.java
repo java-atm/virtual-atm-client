@@ -2,19 +2,20 @@ package com.utils.transactions;
 
 public class Transactions {
 
-    private String ATM_ID = "NONE";
+    private String atm_id = "NONE";
     private String customerID = "NONE";
     private String transactionType = "NONE";
     private String transactionID = "NONE";
     private String fromAccount = "NONE";
     private String toAccount = "NONE";
     private String transactionAmount = "NONE";
+    private String card = "NONE";
 
     Transactions() {
     }
 
-    public void setATM_ID(String ATM_ID) {
-        this.ATM_ID = ATM_ID;
+    public void setAtm_id(String atm_id) {
+        this.atm_id = atm_id;
     }
 
     public void setCustomerID(String customerID) {
@@ -41,8 +42,12 @@ public class Transactions {
         this.transactionAmount = transactionAmount;
     }
 
-    public String getATM_ID() {
-        return ATM_ID;
+    public void setCard(String card) {
+        this.card = card;
+    }
+
+    public String getAtm_id() {
+        return atm_id;
     }
 
     public String getCustomerID() {
@@ -69,6 +74,10 @@ public class Transactions {
         return transactionAmount;
     }
 
+    public String getCard() {
+        return card;
+    }
+
     public static TransactionBuilder getTransactionBuilder() {
         return new TransactionBuilder();
     }
@@ -76,7 +85,7 @@ public class Transactions {
     @Override
     public String toString() {
         return "Transactions{" +
-                "ATM_ID='" + ATM_ID + '\'' +
+                "ATM_ID='" + atm_id + '\'' +
                 ", customerID='" + customerID + '\'' +
                 ", transactionType='" + transactionType + '\'' +
                 ", transactionID='" + transactionID + '\'' +

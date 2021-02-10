@@ -53,7 +53,7 @@ public class CustomerConsole {
         return pin;
     }
 
-    public static void continueOperation() throws CancelException {
+    public static void cancelOperation() throws CancelException {
         String cancel = console.nextLine();
         LOGGER.info("Perform another transaction answer: '{}'", cancel);
         if(cancel.equals("n") || cancel.equals("N") ||
