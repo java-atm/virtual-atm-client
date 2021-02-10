@@ -15,7 +15,8 @@ public class ReceiptPrinter {
 
     public static void printReceipt(JSONObject transactionInfo) {
         LOGGER.info("Start printing receipt");
-        try (PrintWriter receiptPrinter = new PrintWriter("receipt.txt");) {
+
+        try (PrintWriter receiptPrinter = new PrintWriter(String.format("%s.txt", transactionInfo.get("transactionID")));) {
             receiptPrinter.print("JAVA-ATM-THE-KINDEST-BANK\n");
             receiptPrinter.print("ADDRESS: YOUR SWEET HOME AND IP ADDRESS:) " + getIP() + "\n");
             receiptPrinter.print("CONTACTS:\nPM: ARTAK KIRAKOSYAN +374-(99)-099-448\n");

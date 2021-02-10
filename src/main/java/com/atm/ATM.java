@@ -37,7 +37,7 @@ public class ATM implements ATMInterface {
     private TransactionBuilder currentTransactionBuilder;
     private Action lastSelectedAction;
     private double wholeDeposit = 0.0;
-
+    int counter = 0;
     public ATM(final String ATM_ID, RealCash initialCash) {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser(initialCash);
@@ -130,7 +130,8 @@ public class ATM implements ATMInterface {
             try {
                 LOGGER.info("Dialog to choose another transaction");
                 //some code for getting transactionID
-                currentTransactionBuilder.setTransactionID("TransID123");
+                currentTransactionBuilder.setTransactionID("TransID123" + counter);
+                counter++;
                 Transactions transactions = currentTransactionBuilder.buildTransaction();
                 if(!transactions.getTransactionID().equals("TransID")) {
                     printReceipt(new JSONObject(transactions));
