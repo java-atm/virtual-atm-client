@@ -24,7 +24,7 @@ public class BackendConnection implements BackendConnectionInterface {
 
     private final static String CURRENCY = AccountCurrency.AMD.getCurrency();
     private final String somethingWentWrongMsg = "Something went wrong";
-    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend_updated/";
+    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/";
 
     public String authenticate(String ATM_ID, Card card, String pin) throws AuthenticateException {
         try {
