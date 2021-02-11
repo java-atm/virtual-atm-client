@@ -3,6 +3,7 @@ package com.atm;
 import com.atm.card_reader.CardReader;
 import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
+import com.atm.receipt_printer.ReceiptPrinter;
 import com.backend_connection.BackendConnection;
 import com.utils.cash.RealCash;
 import com.utils.customer.Customer;
@@ -30,15 +31,13 @@ public class ATM implements ATMInterface {
     private final String ATM_ID;
     private final CashDispenser cashDispenser;
     private final CardReader cardReader;
-    //private final ReceiptPrinter;
     private Customer currentCustomer;
     private final BackendConnection backendConnection;
     private HashMap<String, BigDecimal> accounts;
     private TransactionBuilder currentTransactionBuilder;
-
     private Action lastSelectedAction;
     private double wholeDeposit = 0.0;
-
+    int counter = 0;
     public ATM(final String ATM_ID, RealCash initialCash) {
         this.ATM_ID = ATM_ID;
         cashDispenser = new CashDispenser(initialCash);
@@ -123,23 +122,39 @@ public class ATM implements ATMInterface {
         while(true) {
             currentTransactionBuilder = Transactions.getTransactionBuilder().
                                                         setATM_ID(ATM_ID).
-                                                        setCustomerID(currentCustomer.getCustomerID());
+                                                        setCustomerID(currentCustomer.getCustomerID()).
+                                                        setCardNumber(cardReader.getCard().getCardNumber());
             CustomerConsole.displayMessage("Welcome To Main Menu " + currentCustomer.getName());
             lastSelectedAction = CustomerConsole.chooseAction();
             performSelectedAction(lastSelectedAction);
             try {
                 LOGGER.info("Dialog to choose another transaction");
-                JSONObject transactionJson = new JSONObject(currentTransactionBuilder.buildTransaction());
                 //some code for getting transactionID
-                currentTransactionBuilder.setTransactionID("TransID");
-                System.out.println(currentTransactionBuilder.buildTransaction());
+                currentTransactionBuilder.setTransactionID("TransID123" + counter);
+                counter++;
+                Transactions transactions = currentTransactionBuilder.buildTransaction();
+                if(!transactions.getTransactionID().equals("TransID")) {
+                    printReceipt(new JSONObject(transactions));
+                }
                 CustomerConsole.displayMessage("Do you want to perform another transaction ? Yes (any) No (n)");
-                CustomerConsole.continueOperation();
+                CustomerConsole.cancelOperation();
             } catch (CancelException exception) {
                 LOGGER.info("Customer cancel transactions");
                 CustomerConsole.displayMessage(exception.getMessage());
                 break;
             }
+        }
+    }
+
+    private void printReceipt(JSONObject trsInfo) {
+        LOGGER.info("Preparing for printing receipt");
+        try {
+            CustomerConsole.displayMessage("Do you want print receipt or you are loving nature? Yes (any) No (n)");
+            CustomerConsole.cancelOperation();
+            ReceiptPrinter.printReceipt(trsInfo);
+        } catch (CancelException e) {
+            LOGGER.error("I DUNNO WHAT I CAN WRITE HERE", e);
+            CustomerConsole.displayMessage("We knew that YOU ARE THE KINDEST PERSON IN ALL THE WORLD ! ! !");
         }
     }
 
@@ -310,7 +325,7 @@ public class ATM implements ATMInterface {
                     CustomerConsole.displayMessage("Total: " + wholeDeposit);
                     LOGGER.info("Whole deposit: '{}'", wholeDeposit);
                     CustomerConsole.displayMessage("Continue operation? Yes(any), No(n)");
-                    CustomerConsole.continueOperation();
+                    CustomerConsole.cancelOperation();
                 } catch (CancelException exception) {
                     LOGGER.info("Customer ended to insert banknotes");
                     break;

@@ -1,5 +1,6 @@
 .idea
 out
+*.txt
 src/main/java/Main.java
 target
 logs
