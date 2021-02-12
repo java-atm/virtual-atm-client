@@ -1,8 +1,11 @@
 package com.utils.cash;
 
 import com.utils.enums.Banknote;
+import com.utils.exceptions.InvalidJSONForRealCash;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.LinkedHashMap;
 
@@ -16,6 +19,24 @@ public class RealCash extends CashAbstract {
         super();
         banknotes = new LinkedHashMap<>();
         initBanknotes(0);
+    }
+
+    public RealCash(JSONObject fromJson) throws InvalidJSONForRealCash {
+        super();
+        banknotes = new LinkedHashMap<>();
+        try {
+            for (Banknote banknote : Banknote.values()) {
+                banknotes.put(banknote.getBanknote(), fromJson.getInt(String.valueOf(banknote.getBanknote())));
+            }
+        } catch (JSONException e) {
+            LOGGER.error("Banknote {} is missing", e.getMessage(), e);
+            throw new InvalidJSONForRealCash("Missing banknote: " + e.getMessage());
+        }
+        double amount = 0;
+        for (Double m: banknotes.keySet()) {
+            amount += m * banknotes.get(m);
+        }
+        setAmount(amount);
     }
 
     public RealCash(double initialAmount) {
@@ -74,5 +95,9 @@ public class RealCash extends CashAbstract {
             LOGGER.fatal("AMOUNT IS NOT SUBTRACTED");
             throw new RuntimeException("AMOUNT IS NOT SUBTRACTED");
         }
+    }
+
+    public JSONObject toJson() {
+        return new JSONObject(banknotes);
     }
 }

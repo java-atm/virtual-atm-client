@@ -5,10 +5,11 @@ import com.atm.cash_dispenser.CashDispenser;
 import com.atm.customer_console.CustomerConsole;
 import com.atm.receipt_printer.ReceiptPrinter;
 import com.backend_connection.BackendConnection;
-import com.utils.cash.RealCash;
+import com.utils.atm_config.AtmConfigs;
 import com.utils.customer.Customer;
 import com.utils.enums.Action;
 import com.utils.exceptions.BaseException;
+import com.utils.exceptions.InvalidConfigFileException;
 import com.utils.exceptions.atm_exceptions.CancelException;
 import com.utils.exceptions.atm_exceptions.CardIsInvalidException;
 import com.utils.exceptions.atm_exceptions.CashNotEnoughException;
@@ -19,6 +20,7 @@ import com.utils.transactions.Transactions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import sun.misc.Signal;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -36,14 +38,47 @@ public class ATM implements ATMInterface {
     private HashMap<String, BigDecimal> accounts;
     private TransactionBuilder currentTransactionBuilder;
     private Action lastSelectedAction;
+    private final AtmConfigs atmConfigs;
     private double wholeDeposit = 0.0;
     int counter = 0;
-    public ATM(final String ATM_ID, RealCash initialCash) {
-        this.ATM_ID = ATM_ID;
-        cashDispenser = new CashDispenser(initialCash);
+    private final String[] SIGNALS = new String[]{"HUP", "TERM", "INT" };
+
+    public ATM(String configFilePath, String cashFilePath) throws InvalidConfigFileException {
+        try {
+            atmConfigs = new AtmConfigs(configFilePath, cashFilePath);
+        } catch (InvalidConfigFileException e) {
+            LOGGER.fatal("Failed to load config file, please call maintenance: {}", e.getMessage(), e);
+            CustomerConsole.displayMessage("Failed to load config file, please call maintenance");
+            throw new InvalidConfigFileException(e.getMessage());
+        }
         cardReader = new CardReader();
+        ATM_ID = atmConfigs.getAtmId();
+        backendConnection = new BackendConnection(atmConfigs.getBackendBaseURL(), atmConfigs.getCurrency());
+        cashDispenser = new CashDispenser(atmConfigs.getCurrentCash());
         currentCustomer = null;
-        backendConnection = new BackendConnection();
+        for (String sig : SIGNALS) {
+            Signal.handle(new Signal(sig), signal -> {
+                try {
+                    LOGGER.info("Handling {} with {} number", signal.getName(), signal.getNumber());
+                    dumpCurrentCash();
+                    if (currentTransactionBuilder != null) {
+                        Transactions transactions = currentTransactionBuilder.buildTransaction();
+                        printReceipt(new JSONObject(transactions));
+                    }
+                } finally {
+                    System.exit(1);
+                }
+            });
+        }
+        startATM();
+    }
+
+    private void dumpCurrentCash() {
+        CustomerConsole.displayMessage("\nYou are a mean person, why are you shutting me down like this? ;(\n");
+        CustomerConsole.displayMessage("Just let me finish up something and I will go.\n");
+        LOGGER.info("Dumping {} cash", cashDispenser.getCash().toJson().toString());
+
+        atmConfigs.dumpCurrentCash(cashDispenser.getCash());
     }
 
     public String getATM_ID() {
@@ -78,6 +113,7 @@ public class ATM implements ATMInterface {
                 CustomerConsole.displayMessage(exception.getMessage());
                 LOGGER.error(exception);
             } finally {
+                dumpCurrentCash();
                 ejectCard();
                 CustomerConsole.displayMessage("Card is ejecting");
                 LOGGER.info("Card is ejected");

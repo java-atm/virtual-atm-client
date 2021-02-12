@@ -22,9 +22,20 @@ public class BackendConnection implements BackendConnectionInterface {
 
     private static final Logger LOGGER = LogManager.getLogger(BackendConnection.class);
 
-    private final static String CURRENCY = AccountCurrency.AMD.getCurrency();
+    private final String CURRENCY;
     private final String somethingWentWrongMsg = "Something went wrong";
-    private final String BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/";
+    private final String BASE_URL;
+
+
+    public BackendConnection() {
+        BASE_URL = "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/";
+        CURRENCY = AccountCurrency.AMD.getCurrency();
+    }
+
+    public BackendConnection(String baseUrl, AccountCurrency currency) {
+        BASE_URL = baseUrl;
+        CURRENCY = currency.getCurrency();
+    }
 
     public String authenticate(String ATM_ID, Card card, String pin) throws AuthenticateException {
         try {
