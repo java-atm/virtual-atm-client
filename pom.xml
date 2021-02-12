@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>virtual-atm</groupId>
-    <artifactId>java-atm</artifactId>
+    <artifactId>virtual-atm</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
@@ -51,7 +51,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
             <plugins>
                 <!-- any other plugins -->
                 <plugin>
@@ -101,7 +100,6 @@
                     </configuration>
                 </plugin>
             </plugins>
-        </pluginManagement>
     </build>
 
 </project>
