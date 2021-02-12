@@ -181,7 +181,7 @@ public class BackendConnection implements BackendConnectionInterface {
         try {
             LOGGER.info("Establishing connection with Server");
             HttpURLConnection connection = (HttpURLConnection) new URL(query).openConnection();
-            try(AutoCloseable autoCloseable = connection::disconnect) {
+            try (AutoCloseable autoCloseable = connection::disconnect) {
                 connection.setConnectTimeout(2000);
                 connection.setReadTimeout(2000);
                 connection.setDoOutput(true);
@@ -190,7 +190,7 @@ public class BackendConnection implements BackendConnectionInterface {
                 LOGGER.info("Connection open");
                 BufferedReader responseReader;
                 JSONObject responseJson;
-                if((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_OK) {
+                if ((responseCode = connection.getResponseCode()) == HttpURLConnection.HTTP_OK) {
                     LOGGER.info("Connection is established");
                     LOGGER.info("Preparing for getting valid response data from buffer");
                     responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -223,6 +223,8 @@ public class BackendConnection implements BackendConnectionInterface {
                     throw new Exception("please, try again\nIF THE PROBLEM PERSISTS CALL YOUR BANK");
                 }
             }
+        } catch (JSONException e) {
+            throw new ConnectException(somethingWentWrongMsg);
         } catch (SocketTimeoutException ex) {
             LOGGER.error("CONNECTION TIME OUT", ex);
             throw new ConnectException(somethingWentWrongMsg);
