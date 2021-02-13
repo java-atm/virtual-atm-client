@@ -1,5 +1,0 @@
-{
-  "atm_id": "HAT_INECOBANK_ATM_021",
-  "backend_base_url": "http://ec2-3-129-17-241.us-east-2.compute.amazonaws.com:8080/backend/",
-  "currency": "AMD"
-}

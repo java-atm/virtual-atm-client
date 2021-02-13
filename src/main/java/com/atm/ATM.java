@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import sun.misc.Signal;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -38,33 +39,39 @@ public class ATM implements ATMInterface {
     private HashMap<String, BigDecimal> accounts;
     private TransactionBuilder currentTransactionBuilder;
     private Action lastSelectedAction;
-    private final AtmConfigs atmConfigs;
+    private AtmConfigs atmConfigs = null;
     private double wholeDeposit = 0.0;
     int counter = 0;
-    private final String[] SIGNALS = new String[]{"HUP", "TERM", "INT" };
+    private static final String[] SIGNALS = new String[]{"HUP", "TERM", "INT" };
 
-    public ATM(String configFilePath, String cashFilePath) throws InvalidConfigFileException {
+    public ATM(String atm_id) {
+        ATM_ID = atm_id;
         try {
-            atmConfigs = new AtmConfigs(configFilePath, cashFilePath);
+            atmConfigs = new AtmConfigs(ATM_ID);
         } catch (InvalidConfigFileException e) {
             LOGGER.fatal("Failed to load config file, please call maintenance: {}", e.getMessage(), e);
             CustomerConsole.displayMessage("Failed to load config file, please call maintenance");
-            throw new InvalidConfigFileException(e.getMessage());
+            System.exit(1);
         }
         cardReader = new CardReader();
-        ATM_ID = atmConfigs.getAtmId();
-        backendConnection = new BackendConnection(atmConfigs.getBackendBaseURL(), atmConfigs.getCurrency());
+        backendConnection = new BackendConnection();
         cashDispenser = new CashDispenser(atmConfigs.getCurrentCash());
         currentCustomer = null;
         for (String sig : SIGNALS) {
             Signal.handle(new Signal(sig), signal -> {
                 try {
+                    System.in.close();
+                    CustomerConsole.displayMessage("\nYou are a mean person, why are you shutting me down like this? :(\n");
+                    CustomerConsole.displayMessage("Just let me finish up something and I will go.\n");
+
                     LOGGER.info("Handling {} with {} number", signal.getName(), signal.getNumber());
                     dumpCurrentCash();
                     if (currentTransactionBuilder != null) {
                         Transactions transactions = currentTransactionBuilder.buildTransaction();
                         printReceipt(new JSONObject(transactions));
                     }
+                } catch (IOException e) {
+                    LOGGER.error("Failed to close in: {}", e.getMessage(), e);
                 } finally {
                     System.exit(1);
                 }
@@ -74,10 +81,7 @@ public class ATM implements ATMInterface {
     }
 
     private void dumpCurrentCash() {
-        CustomerConsole.displayMessage("\nYou are a mean person, why are you shutting me down like this? ;(\n");
-        CustomerConsole.displayMessage("Just let me finish up something and I will go.\n");
         LOGGER.info("Dumping {} cash", cashDispenser.getCash().toJson().toString());
-
         atmConfigs.dumpCurrentCash(cashDispenser.getCash());
     }
 

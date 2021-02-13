@@ -9,65 +9,50 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 
 public class AtmConfigs {
     private static final Logger LOGGER = LogManager.getLogger(AtmConfigs.class);
-    private final String CONFIG_FILE_PATH;
     private final String CASH_FILE_PATH;
-    private final String atmId;
-    private final String backendBaseURL;
-    private final AccountCurrency currency;
     private RealCash currentCash;
-
+    private final String atmId;
     private JSONObject cashJson;
-    private JSONObject atmConfigJson;
 
-    public AtmConfigs(String filePath, String cashFilePath) throws InvalidConfigFileException {
-        CONFIG_FILE_PATH = filePath;
-        CASH_FILE_PATH = cashFilePath;
-
-        try {
-            FileReader jsonStringReader = new FileReader(CONFIG_FILE_PATH);
-            Scanner s = new Scanner(jsonStringReader);
-            s.useDelimiter("\\Z");
-            String content = s.next();
-            atmConfigJson = new JSONObject(content);
-            atmId = atmConfigJson.getString("atm_id");
-            backendBaseURL = atmConfigJson.getString("backend_base_url");
-            currency = AccountCurrency.valueOf(atmConfigJson.getString("currency"));
-        } catch (NoSuchElementException| IOException | JSONException e) {
-            throw new InvalidConfigFileException("FILE NOT FOUND, INVALID JSON OR PARAMETER MISSING: " + e.getMessage());
+    public AtmConfigs(String atmId) throws InvalidConfigFileException {
+        this.atmId = atmId;
+        CASH_FILE_PATH = String.format("./.%s_cash_holder.json", atmId);
+        File cashHolder = new File(CASH_FILE_PATH);
+        if (cashHolder.exists() && ! cashHolder.isFile()) {
+            throw new InvalidConfigFileException("Config file does not exist or is not a proper file.");
         }
-
-        try {
-            FileReader jsonStringReader = new FileReader(CASH_FILE_PATH);
-            Scanner s = new Scanner(jsonStringReader);
-            s.useDelimiter("\\Z");
-            String content = s.next();
-            cashJson = new JSONObject(content);
-            currentCash = new RealCash(cashJson);
-        } catch (NoSuchElementException | IOException | JSONException | InvalidJSONForRealCash e) {
-            throw new InvalidConfigFileException("FILE NOT FOUND, INVALID JSON OR PARAMETER MISSING: " + e.getMessage());
+        if (cashHolder.exists() && cashHolder.isFile()) {
+            try {
+                LOGGER.info("Loading cash holder.");
+                FileReader jsonStringReader = new FileReader(cashHolder);
+                Scanner s = new Scanner(jsonStringReader);
+                s.useDelimiter("\\Z");
+                String content = s.next();
+                cashJson = new JSONObject(content);
+                currentCash = new RealCash(cashJson);
+                dumpCurrentCash(currentCash);
+            } catch (NoSuchElementException | IOException | JSONException | InvalidJSONForRealCash e) {
+                throw new InvalidConfigFileException("FILE NOT FOUND, INVALID JSON OR PARAMETER MISSING: " + e.getMessage());
+            }
+        } else {
+            currentCash = new RealCash(0);
+            cashJson = currentCash.toJson();
+            LOGGER.info("Creating empty ATM");
+            dumpCurrentCash(currentCash);
         }
     }
 
     public String getAtmId() {
         return atmId;
-    }
-
-    public String getBackendBaseURL() {
-        return backendBaseURL;
-    }
-
-    public AccountCurrency getCurrency() {
-        return currency;
     }
 
     public RealCash getCurrentCash() {
